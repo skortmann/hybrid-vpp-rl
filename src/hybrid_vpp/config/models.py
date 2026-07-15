@@ -411,7 +411,7 @@ class EpisodeConfig(BaseModel):
 
 
 class TrainingConfig(BaseModel):
-    algorithm: Literal["ppo", "sac", "tqc", "td3", "recurrent_ppo"] = "ppo"
+    algorithm: Literal["ppo", "sac", "tqc", "td3", "recurrent_ppo", "crossq", "sbx_sac"] = "ppo"
     total_timesteps: int = Field(default=2_000_000, gt=0)
     seed: int = 0
     n_envs: int = Field(default=8, ge=1)
