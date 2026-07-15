@@ -1,0 +1,122 @@
+# Default experiment configuration — oversized hybrid park behind a constrained PCC.
+# X = 100 MW export limit, installed = 70 wind + 50 PV = 120 MW  =>  Y = 20 MW excess,
+# oversizing ratio 1.2. All values are examples and freely configurable.
+
+site:
+  name: hybrid-park-de-ninja
+  wind:
+    capacity_mw: 70.0
+    latitude: 53.4          # example: coastal Lower Saxony
+    longitude: 8.1
+    hub_height_m: 100.0
+    turbine_model: "Vestas V112 3000"
+    offshore: false
+  pv:
+    capacity_mw: 50.0
+    latitude: 53.4
+    longitude: 8.1
+    system_loss: 0.1
+    tilt_deg: 35.0
+    azimuth_deg: 180.0
+    tracking: 0
+  battery:
+    energy_capacity_mwh: 60.0
+    charge_power_mw: 30.0
+    discharge_power_mw: 30.0
+    charge_efficiency: 0.95
+    discharge_efficiency: 0.95
+    soc_min: 0.05
+    soc_max: 0.95
+    soc_initial: 0.5
+    soc_terminal_target: 0.5
+    degradation_cost_eur_per_mwh_throughput: 1.5
+  grid:
+    export_limit_mw: 100.0
+    import_limit_mw: 30.0
+    allow_grid_import: true
+    congestion_resolution:
+      mode: optimization
+      weights:
+        bess_deviation: 1.0
+        wind_curtailment: 10.0
+        pv_curtailment: 10.0
+  curtailment_cost_eur_per_mwh: 0.0
+
+markets:
+  bidding_zone: DE_LU
+  daa_quarter_hourly_from: "2025-10-01"
+  daa:
+    gate_closure_local: "12:00"
+    publication_delay_min: 60
+    gate_day_offset: -1
+    max_volume_mw: 150.0
+    transaction_cost_eur_per_mwh: 0.05
+  ida1:
+    gate_closure_local: "15:00"
+    publication_delay_min: 30
+    gate_day_offset: -1
+    max_volume_mw: 150.0
+    transaction_cost_eur_per_mwh: 0.05
+  ida2:
+    gate_closure_local: "22:00"
+    publication_delay_min: 30
+    gate_day_offset: -1
+    max_volume_mw: 150.0
+    transaction_cost_eur_per_mwh: 0.05
+  ida3:
+    gate_closure_local: "10:00"
+    publication_delay_min: 30
+    gate_day_offset: 0
+    delivery_hours: [12, 24]
+    max_volume_mw: 150.0
+    transaction_cost_eur_per_mwh: 0.05
+  idc:
+    decision_frequency: "1h"
+    opening_local_time: "16:00"
+    gate_closure_lead: "30min"
+    execution_index_by_lead: { "1h": ID1, "3h": ID3, "inf": IDFULL }
+    max_volume_mw_per_trade: 50.0
+    transaction_cost_eur_per_mwh: 0.10
+  imbalance:
+    model: rebap
+    deviation_penalty_eur_per_mwh: 0.0
+
+data:
+  market_database:
+    mode: auto                       # real | synthetic | auto
+    path: ${MARKET_DATABASE_PATH}    # null -> env var -> known default location
+    synthetic_path: data/generated/synthetic-iaew-marktdaten.db
+    create_if_missing: true
+    fallback_on:
+      missing_file: true
+      invalid_schema: true
+      insufficient_coverage: true
+  cache_dir: data/cache
+  renewables_dir: data/renewables
+  site_profile_source: renewables_ninja
+
+split:
+  train_start: "2024-06-14"
+  train_end:   "2025-10-01"
+  val_start:   "2025-10-01"
+  val_end:     "2025-11-16"
+  test_start:  "2025-11-16"
+  test_end:    "2025-12-31"
+
+forecast:
+  renewable_mode: zone_scaled_error
+  price_mode: seasonal_naive
+  horizon: "48h"
+
+episode:
+  days: 1
+  infeasibility_penalty_eur_per_mwh: 0.0
+
+training:
+  algorithm: ppo
+  total_timesteps: 2000000
+  seed: 0
+  n_envs: 8
+  eval_freq: 50000
+  checkpoint_dir: runs
+  tensorboard_dir: runs/tb
