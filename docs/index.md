@@ -18,6 +18,33 @@ trading.
 | **RL** | Gymnasium env, event-driven decisions, fixed-size masked actions, leakage-guarded observations; SB3 PPO baseline, W&B tracking |
 | **Benchmarks** | Do-nothing, rule-based, rolling-horizon MILP (PyOptInterface: Gurobi/HiGHS), perfect-foresight upper bound |
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph data["data layer"]
+        DB[("market database<br/>(real or synthetic drop-in)")] --> STORE["MarketDataStore<br/>UTC-normalized series"]
+        NINJA["Renewables.ninja /<br/>zone-scaled profiles"] --> PROF["site profiles"]
+    end
+    subgraph decision["decision layer"]
+        STORE --> FC["forecast providers<br/>(issue-time indexed)"]
+        FC --> OBS["observation builder"]
+        OBS --> POLICY["controller<br/>RL · rule-based · MILP"]
+        POLICY --> LAYOUT["action layout<br/>(direct / target / hourly / residual)"]
+    end
+    subgraph sim["validated simulator"]
+        LAYOUT --> CAL["market calendar<br/>gates & eligibility"]
+        CAL --> EXEC["execution<br/>price-taker fills"]
+        LAYOUT --> FEAS["feasibility projection"]
+        PROF --> FEAS
+        FEAS --> BESS["battery + grid connection"]
+        EXEC --> BOOK["append-only position book"]
+        BOOK --> SETTLE["reBAP settlement"]
+        BESS --> SETTLE
+        SETTLE --> LEDGER["cash ledger → reward / KPIs"]
+    end
+```
+
 ## Data sources
 
 Runs on the private IAEW market database when available and **falls back

@@ -76,6 +76,21 @@ grid = (wind_avail − wind_curt) + (pv_avail − pv_curt) + bess
 
 ## 4. Feasibility layer (oversized park)
 
+```mermaid
+flowchart TD
+    REQ["requested dispatch<br/>(p_bess, curt_wind, curt_pv)"] --> BOX["box constraints:<br/>SoC-aware power bounds,<br/>0 ≤ curtailment ≤ available"]
+    BOX --> CHECK{"grid power within<br/>[−import, export]?"}
+    CHECK -->|yes| APPLY["apply as requested"]
+    CHECK -->|no| MODE{"congestion_resolution.mode"}
+    MODE -->|optimization| QP["exact weighted QP projection<br/>(KKT multiplier bisection)"]
+    MODE -->|heuristics| PRIO["priority sequence:<br/>reduce discharge → charge →<br/>curtail (pv/wind/proportional)"]
+    QP --> APPLY2["feasible dispatch<br/>(balance preserved exactly)"]
+    PRIO --> APPLY2
+    APPLY --> REC
+    APPLY2 --> REC["audit record: requested vs applied,<br/>reason, technical-vs-economic curtailment"]
+```
+
+
 Requested dispatch is projected onto the feasible set
 (`assets/feasibility.py`); the final export is *derived from the corrected
 dispatch variables*, never clipped, so the power balance holds exactly.
