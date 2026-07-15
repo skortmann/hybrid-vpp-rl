@@ -80,6 +80,11 @@ class HybridVppEnv(gym.Env):
             HistoricalPriceView(self.sim.calendar, price_series),
         )
         self._daa_prices = price_series["daa"]
+        self._baseline_controller = None
+        if self.layout.needs_baseline:
+            from hybrid_vpp.controllers.rule_based import RuleBasedController
+
+            self._baseline_controller = RuleBasedController(cfg, renewable_fc, price_fc)
 
         self.action_space = gym.spaces.Box(-1.0, 1.0, (self.layout.size,), np.float32)
         self.observation_space = gym.spaces.Box(
@@ -137,6 +142,8 @@ class HybridVppEnv(gym.Env):
         self.obs_builder.start_episode(window_start)
         self._window_start = window_start
         self._episode_day = day
+        if self._baseline_controller is not None:
+            self._baseline_controller.reset()
         obs = self.obs_builder.build(self._event, self.sim)
         return obs, self._info(self._event)
 
@@ -144,7 +151,14 @@ class HybridVppEnv(gym.Env):
         if self._event is None:
             raise RuntimeError("call reset() first")
         event = self._event
-        logical = self.layout.translate(action, self._window_start, event, self.sim)
+        baseline = (
+            self._baseline_controller.act(event, self.sim)
+            if self._baseline_controller is not None
+            else None
+        )
+        logical = self.layout.translate(
+            action, self._window_start, event, self.sim, baseline=baseline
+        )
         result, next_event = self.sim.step(logical)
 
         reward = result.cash_eur

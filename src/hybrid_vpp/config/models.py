@@ -402,10 +402,14 @@ class EpisodeConfig(BaseModel):
     days: int = Field(default=1, ge=1)
     #: penalty applied by the env for requested-but-infeasible actions, EUR/MWh
     infeasibility_penalty_eur_per_mwh: float = Field(default=0.0, ge=0)
+    #: action formulation (see hybrid_vpp.envs.actions for schema docs)
+    action_mode: Literal["direct", "target_position", "hourly_target", "residual_hourly"] = "direct"
+    #: max market correction per hour anchor in residual mode, MW
+    residual_scale_mw: float = Field(default=25.0, gt=0)
 
 
 class TrainingConfig(BaseModel):
-    algorithm: Literal["ppo", "sac"] = "ppo"
+    algorithm: Literal["ppo", "sac", "tqc", "td3", "recurrent_ppo"] = "ppo"
     total_timesteps: int = Field(default=2_000_000, gt=0)
     seed: int = 0
     n_envs: int = Field(default=8, ge=1)
