@@ -34,6 +34,7 @@ dependencies = [
     "gurobipy>=13.0.2",
     "pyoptinterface[highs]>=0.6.1",
     "sb3-contrib>=2.9.0",
+    "sbx-rl>=0.27.0",
 ]
 
 [project.urls]
