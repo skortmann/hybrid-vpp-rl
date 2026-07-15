@@ -1,0 +1,45 @@
+{
+  "experiment_id": "baseline-ppo-direct-v1",
+  "recorded": "2026-07-15",
+  "git_commit": "762a341",
+  "release_tag": "v0.1.0",
+  "environment_version": "env-v1",
+  "observation_schema": "obs-v1: 23 scalars + 5x100 per-slot arrays (wind_fc, pv_fc, price_ref, position, mask), size 523",
+  "action_schema": "act-v1-direct: Box[-1,1]^103 (100 QH market slots + bess + wind_curt + pv_curt), masked-inactive",
+  "reward": "ledger cash flows per step (kEUR, scale 1e-3) + terminal SoC valuation at mean day DAA price; each euro once",
+  "splits": {
+    "train": "2024-06-14 .. 2025-11-01",
+    "val": "2025-11-01 .. 2026-02-01",
+    "test": "2026-02-01 .. 2026-05-10"
+  },
+  "baseline_results_val_92d_eur": {
+    "do_nothing": 4963832,
+    "rule_based": 5193519,
+    "milp_info_equivalent": 5134131,
+    "milp_perfect_foresight": 5499053
+  },
+  "ppo_hyperparameters": {
+    "n_steps": 256, "batch_size": 1024, "gamma": 0.995, "gae_lambda": 0.95,
+    "learning_rate": 3e-4, "ent_coef": 0.0, "clip_range": 0.2, "n_epochs": 10,
+    "net_arch": [256, 256], "log_std_init": -1.0, "n_envs": 8, "seed": 0
+  },
+  "wandb_runs": {
+    "terminated_hot_exploration": "nv2qwm96",
+    "baseline_2M_run_stopped_at_500k": "aesjpwo9"
+  },
+  "run_outcome": {
+    "steps_completed": 499712,
+    "eval_mean_reward_keur_per_day_by_50k": [16.2, 3.62, 21.0, -86.9, -34.2, -10.8, 23.2, -157.0, -16.3],
+    "best_eval_keur_per_day": 23.2,
+    "rule_based_reference_keur_per_day": 56.0,
+    "diagnostics": {
+      "action_std_final": 0.366,
+      "std_frozen": true,
+      "clip_fraction_trend": [0.216, 0.345],
+      "approx_kl_final": 0.039,
+      "explained_variance_range": [0.5, 0.77],
+      "value_loss_scale": "1e4 (kEUR^2)"
+    },
+    "verdict": "oscillating/plateaued, dominated by rule-based; stopped at 500k as uninformative"
+  }
+}
