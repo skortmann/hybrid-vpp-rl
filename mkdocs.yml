@@ -64,3 +64,4 @@ nav:
   - Data Audit: data_audit.md
   - Model & Markets: model.md
   - Synthetic Market Data: synthetic_market_data.md
+  - RL Research: rl_research.md
