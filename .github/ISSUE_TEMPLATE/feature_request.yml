@@ -1,0 +1,18 @@
+name: Feature request
+description: Propose a new capability or model extension
+labels: [enhancement]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the framework support, and why is it useful for hybrid-VPP research?
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Sketch
+      description: >
+        Where would it live (market calendar / assets / controllers /
+        data adapters / env)? See CONTRIBUTING.md for extension points.

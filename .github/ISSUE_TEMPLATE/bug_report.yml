@@ -1,0 +1,31 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the observed vs. expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: >
+        Config + commands. Prefer the synthetic database
+        (`uv run python -m hybrid_vpp.data.synthetic_market`) so the issue
+        is reproducible without private data.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Market-data source
+      placeholder: real | synthetic (seed, config)
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
