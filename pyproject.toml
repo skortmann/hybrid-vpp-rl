@@ -1,0 +1,76 @@
+[project]
+name = "hybrid-vpp-rl"
+version = "0.1.0"
+description = "Reinforcement-learning energy management and trading framework for a hybrid wind-PV-BESS virtual power plant (German DAA / IDA1-3 / IDC markets)"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Steffen Kortmann" }]
+requires-python = ">=3.12"
+keywords = [
+    "reinforcement-learning", "virtual-power-plant", "battery-storage",
+    "electricity-markets", "intraday-trading", "energy-systems",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "gymnasium>=1.0",
+    "stable-baselines3>=2.4",
+    "torch>=2.3",
+    "matplotlib>=3.9",
+    "requests>=2.32",
+    "pyarrow>=16.0",
+    "tensorboard>=2.16",
+    "wandb>=0.28.0",
+    "weave>=0.53.1",
+    "gurobipy>=13.0.2",
+    "pyoptinterface[highs]>=0.6.1",
+]
+
+[project.urls]
+Repository = "https://github.com/skortmann/hybrid-vpp-rl"
+Issues = "https://github.com/skortmann/hybrid-vpp-rl/issues"
+Documentation = "https://github.com/skortmann/hybrid-vpp-rl/tree/main/docs"
+
+[dependency-groups]
+dev = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.6",
+    "pymdown-extensions>=11.0.1",
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["uv_build>=0.11,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "hybrid_vpp"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

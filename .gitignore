@@ -1,0 +1,50 @@
+# environments and secrets — never commit credentials
+.env
+.env.*
+!.env.example
+local.env
+*.token
+
+# databases — market data is never distributed with the repository
+*.db
+*.sqlite
+*.sqlite3
+
+# data caches, downloads, and generated databases (all reproducible)
+data/cache/
+data/renewables/
+data/generated/
+
+# experiment outputs
+runs/
+wandb/
+plots/
+checkpoints/
+models/
+outputs/
+tensorboard/
+
+# built documentation
+site/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+wheels/
+*.egg-info
+
+# virtual environments
+.venv/
+venv/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
