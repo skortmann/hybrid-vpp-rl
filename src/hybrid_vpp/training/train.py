@@ -71,7 +71,6 @@ class EpisodeMetricsCallback:
 
 def train(config_path: str | Path, resume_from: str | None = None) -> Path:
     import torch
-    from stable_baselines3 import PPO, SAC
     from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
     from stable_baselines3.common.vec_env import SubprocVecEnv
 
@@ -132,29 +131,17 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
     )
     eval_env = SubprocVecEnv([make_env_fn(cfg, "val", 900, sequential=True)], start_method="fork")
 
-    algo_cls = {"ppo": PPO, "sac": SAC}[tc.algorithm]
+    from hybrid_vpp.training.algorithms import algo_class, default_kwargs, policy_name
+
+    algo_cls = algo_class(tc.algorithm)
     algo_kwargs = {
-        "policy": "MlpPolicy",
+        "policy": policy_name(tc.algorithm),
         "env": train_env,
         "seed": tc.seed,
         "verbose": 1,
         "tensorboard_log": str(tc.tensorboard_dir),
     }
-    if tc.algorithm == "ppo":
-        # ent_coef = 0: an entropy bonus keeps the 100+-dim Gaussian too hot —
-        # random +-max_volume positions produce catastrophic imbalance costs.
-        # log_std_init = -1 starts exploration at ~1/3 of the action range.
-        algo_kwargs.update(
-            n_steps=256,
-            batch_size=1024,
-            gamma=0.995,
-            gae_lambda=0.95,
-            learning_rate=3e-4,
-            ent_coef=0.0,
-            clip_range=0.2,
-            n_epochs=10,
-            policy_kwargs={"net_arch": [256, 256], "log_std_init": -1.0},
-        )
+    algo_kwargs.update(default_kwargs(tc.algorithm))
     algo_kwargs.update(tc.algo_kwargs)
     if tc.policy_kwargs:
         algo_kwargs["policy_kwargs"] = {**algo_kwargs.get("policy_kwargs", {}), **tc.policy_kwargs}
