@@ -1,6 +1,10 @@
 site_name: hybrid-vpp-rl
 site_description: RL energy-management and trading framework for a hybrid wind-PV-BESS VPP (German DAA / IDA / IDC markets)
 site_author: Steffen Kortmann
+site_url: https://skortmann.github.io/hybrid-vpp-rl/
+repo_url: https://github.com/skortmann/hybrid-vpp-rl
+repo_name: skortmann/hybrid-vpp-rl
+edit_uri: ""
 
 docs_dir: docs
 site_dir: site

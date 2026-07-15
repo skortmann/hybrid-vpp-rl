@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/skortmann/hybrid-vpp-rl/actions/workflows/ci.yml/badge.svg)](https://github.com/skortmann/hybrid-vpp-rl/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-skortmann.github.io-blue)](https://skortmann.github.io/hybrid-vpp-rl/)
 
 Reinforcement-learning energy-management and trading framework for a
 co-located **wind + PV + battery** hybrid virtual power plant participating
