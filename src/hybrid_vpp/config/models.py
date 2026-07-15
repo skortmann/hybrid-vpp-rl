@@ -403,7 +403,9 @@ class EpisodeConfig(BaseModel):
     #: penalty applied by the env for requested-but-infeasible actions, EUR/MWh
     infeasibility_penalty_eur_per_mwh: float = Field(default=0.0, ge=0)
     #: action formulation (see hybrid_vpp.envs.actions for schema docs)
-    action_mode: Literal["direct", "target_position", "hourly_target", "residual_hourly"] = "direct"
+    action_mode: Literal[
+        "direct", "target_position", "hourly_target", "residual_hourly", "strategic"
+    ] = "direct"
     #: max market correction per hour anchor in residual mode, MW
     residual_scale_mw: float = Field(default=25.0, gt=0)
 

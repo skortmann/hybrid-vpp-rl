@@ -60,6 +60,7 @@ ACTION_SCHEMA_VERSIONS = {
     "target_position": "act-v2-target",
     "hourly_target": "act-v3-hourly-target",
     "residual_hourly": "act-v4-residual-hourly",
+    "strategic": "act-v5-strategic",
 }
 
 
@@ -67,6 +68,8 @@ ACTION_SCHEMA_VERSIONS = {
 class ActionLayout:
     cfg: ExperimentConfig
     episode_days: int = 1
+    #: set by the environment when mode == "strategic"
+    strategic_translator: object | None = None
 
     @property
     def mode(self) -> str:
@@ -78,20 +81,36 @@ class ActionLayout:
 
     @property
     def hourly(self) -> bool:
-        return self.mode in ("hourly_target", "residual_hourly")
+        return self.mode in ("hourly_target", "residual_hourly", "strategic")
+
+    @property
+    def is_strategic(self) -> bool:
+        return self.mode == "strategic"
 
     @property
     def n_slots(self) -> int:
+        if self.is_strategic:
+            return 0
+        per_day = MAX_HOURS_PER_DAY if self.hourly else MAX_SLOTS_PER_DAY
+        return per_day * self.episode_days
+
+    @property
+    def obs_slots(self) -> int:
+        """Per-slot observation resolution (independent of action dimension)."""
         per_day = MAX_HOURS_PER_DAY if self.hourly else MAX_SLOTS_PER_DAY
         return per_day * self.episode_days
 
     @property
     def size(self) -> int:
+        from hybrid_vpp.envs.strategic import N_STRATEGIC_DIMS
+
+        if self.is_strategic:
+            return N_STRATEGIC_DIMS
         return self.n_slots + N_DISPATCH_ENTRIES
 
     @property
     def needs_baseline(self) -> bool:
-        return self.mode == "residual_hourly"
+        return self.mode in ("residual_hourly", "strategic")
 
     def slot_of(self, window_start_utc: pd.Timestamp, product: DeliveryProduct) -> int:
         delta = product.start_utc - window_start_utc
@@ -102,6 +121,12 @@ class ActionLayout:
 
     def mask(self, window_start_utc: pd.Timestamp, event: MarketEvent) -> np.ndarray:
         """1.0 for action entries that have an effect at this event."""
+        if self.is_strategic:
+            from hybrid_vpp.envs.strategic import STRATEGIC_MASKS
+
+            mask = np.zeros(self.size, dtype=np.float32)
+            mask[list(STRATEGIC_MASKS[event.type])] = 1.0
+            return mask
         mask = np.zeros(self.size, dtype=np.float32)
         if event.type == EventType.PHYSICAL_DISPATCH:
             mask[self.n_slots :] = 1.0
@@ -109,6 +134,16 @@ class ActionLayout:
             for p in event.products:
                 for qh in p.quarter_hours():
                     mask[self.slot_of(window_start_utc, qh)] = 1.0
+        return mask
+
+    def eligibility_mask(self, window_start_utc: pd.Timestamp, event: MarketEvent) -> np.ndarray:
+        """Per-observation-slot product eligibility (obs_slots length)."""
+        mask = np.zeros(self.obs_slots, dtype=np.float32)
+        step = pd.Timedelta(hours=1) if self.hourly else INTERVAL
+        for p in event.products:
+            slot = int((p.start_utc - window_start_utc) / step)
+            if 0 <= slot < self.obs_slots:
+                mask[slot] = 1.0
         return mask
 
     # ------------------------------------------------------------- translate
@@ -129,6 +164,11 @@ class ActionLayout:
         raw = np.asarray(raw, dtype=np.float64).clip(-1.0, 1.0)
         if raw.shape != (self.size,):
             raise ValueError(f"action shape {raw.shape}, expected {(self.size,)}")
+
+        if self.is_strategic:
+            if self.strategic_translator is None:
+                raise ValueError("strategic mode requires a StrategicTranslator")
+            return self.strategic_translator.translate(raw, event, sim)
 
         if self.mode == "residual_hourly":
             if baseline is None:
