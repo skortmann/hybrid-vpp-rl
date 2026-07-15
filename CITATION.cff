@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software in research, please cite it using the metadata below."
+title: "hybrid-vpp-rl: Reinforcement learning for hybrid wind-PV-BESS virtual power plant operation"
+type: software
+authors:
+  - family-names: Kortmann
+    given-names: Steffen
+repository-code: "https://github.com/skortmann/hybrid-vpp-rl"
+license: MIT
+keywords:
+  - reinforcement learning
+  - virtual power plant
+  - battery energy storage
+  - electricity markets
+  - day-ahead market
+  - intraday trading
+  - renewable energy
