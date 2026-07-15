@@ -78,8 +78,55 @@ the residual variant starts at rule-based performance by construction.
 * Model selection always on true economic return (validation), never on
   training reward and never on test data.
 
+## Advanced-algorithm program
+
+Beyond the SB3 family, the program evaluates recent model-based,
+offline-to-online, and projection-aware methods on the *compact*
+environments (never first on the raw 103-dim tensor). Versions:
+Python 3.12.9, torch 2.13 (CPU), SB3/SB3-Contrib 2.9.0, SBX 0.27 (JAX
+0.10.2), Gymnasium 1.3.0, PyOptInterface 0.6.1 + Gurobi 13 / HiGHS.
+
+### Capability matrix
+
+| Method | On/Offline | Model-based | Recurrent | Cont. action | Dict obs | Hard-constraint integration | Demo support | Main risk |
+|---|---|---|---|---|---|---|---|---|
+| PPO (SB3) | online | no | no | yes | yes | via env projection | no | update instability at high KL |
+| RecurrentPPO (contrib) | online | no | LSTM | yes | yes | via env projection | no | slow rollouts, state handling |
+| SAC (SB3) | online | no | no | yes | yes | via env projection | prefill only | replay dominated by dispatch events |
+| TQC (contrib) | online | no | no | yes | yes | via env projection | prefill only | quantile overfitting on spikes |
+| TD3 (SB3) | online | no | no | yes | yes | via env projection | prefill only | brittle exploration |
+| CrossQ (SBX) | online | no | no | yes | no (flat) | via env projection | prefill only | BatchNorm stats under event heterogeneity |
+| RLPD (custom replay) | off→on | no | no | yes | flat | via env projection | **yes (core)** | prior-data imbalance |
+| IQL / CQL (offline) | offline | no | no | yes | flat | via env projection | **yes (core)** | support mismatch after projection |
+| TD-MPC2 (official impl) | online | **yes** | latent | yes | flat tensor | needs deterministic translator | optional | model error on rare gate events |
+| DreamerV3 (official impl) | online | **yes** | RSSM | yes | vector | needs deterministic translator | no | compute cost; imagined constraint violations |
+| Hybrid RL+MILP (H1–H6) | online | optimizer | no | low-dim | n/a | **exact (solver)** | n/a | solver latency, fallback design |
+
+Not applicable: DQN/QR-DQN (no justified discretization yet); MaskablePPO
+(no discrete sub-actions in current layouts).
+
+### Compact environments (Tier 0)
+
+* **Residual** (act-v4) — bounded corrections around rule-based ✓
+* **Target-position** (act-v2/v3) ✓
+* **Strategic** (act-v5) — 7 economic decision variables (DAA coverage,
+  arbitrage scale, IDA/IDC correction gains, BESS tracking gain,
+  curtailment price threshold, SoC bias) mapped by a deterministic
+  translator that reuses the rule-based structure; mid-range parameters
+  reproduce rule-based exactly (test-pinned). The critic sees only the
+  pre-translation strategic action — the cleanest answer to projection
+  aliasing (§8 of the extension brief).
+* Prior-trajectory dataset (`training/datasets.py`): training-split days
+  only, strategic schema, behaviors from do-nothing to high-turnover plus
+  seeded random policies — the substrate for RLPD/IQL/CQL.
+
 ## Status log
 
 * 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4
   implemented and test-pinned; Level-1 learnability (PPO/SAC) and Phase-2
   screening (PPO×4 action modes, SAC/TQC on hourly/residual) launched.
+* 2026-07-15 (later): first screening results — SAC+hourly-target reaches
+  48.9k EUR/day on the 30 fixed validation days (info-gap 4.5%);
+  direct-PPO reference confirmed broken (6.9k). Advanced program started
+  on branch `research/advanced-rl`: strategic env (act-v5), CrossQ via
+  SBX, prior-trajectory dataset builder, capability matrix.
