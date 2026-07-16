@@ -101,6 +101,35 @@ class HeartbeatCallback:
         return _Callback()
 
 
+def prefill_replay_buffer(model, dataset_path: Path, n_envs: int) -> int:
+    """Load prior transitions (training-split npz) into an off-policy buffer.
+
+    Transitions are inserted in groups of ``n_envs`` distinct samples (the
+    buffer stores one slot per parallel env); the trailing remainder that
+    does not fill a group is dropped. On-policy algorithms have no replay
+    buffer — a configuration error, surfaced loudly.
+    """
+    import numpy as np
+
+    buffer = getattr(model, "replay_buffer", None)
+    if buffer is None:
+        raise ValueError("replay_prefill_path set, but the algorithm has no replay buffer")
+    data = np.load(dataset_path, allow_pickle=False)
+    obs, next_obs = data["obs"], data["next_obs"]
+    actions, rewards, dones = data["action"], data["reward"], data["done"]
+    if obs.shape[1] != model.observation_space.shape[0]:
+        raise ValueError(
+            f"prior dataset obs dim {obs.shape[1]} != env obs dim "
+            f"{model.observation_space.shape[0]} — schema mismatch"
+        )
+    total = (len(rewards) // n_envs) * n_envs
+    infos = [{} for _ in range(n_envs)]
+    for i in range(0, total, n_envs):
+        sl = slice(i, i + n_envs)
+        buffer.add(obs[sl], next_obs[sl], actions[sl], rewards[sl], dones[sl], infos)
+    return total
+
+
 def train(
     config_path: str | Path,
     resume_from: str | None = None,
@@ -191,6 +220,10 @@ def train(
         log.info("resumed from %s", resume_from)
     else:
         model = algo_cls(**algo_kwargs)
+
+    if tc.replay_prefill_path is not None:
+        n_added = prefill_replay_buffer(model, Path(tc.replay_prefill_path), tc.n_envs)
+        log.info("prefilled replay buffer with %d prior transitions", n_added)
 
     eval_freq = max(tc.eval_freq // tc.n_envs, 1)
     callbacks = [

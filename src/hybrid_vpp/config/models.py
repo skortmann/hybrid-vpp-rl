@@ -422,6 +422,8 @@ class TrainingConfig(BaseModel):
     tensorboard_dir: Path = Path("runs/tb")
     tracker: Literal["wandb", "tensorboard", "none"] = "wandb"
     wandb_project: str = "hybrid-vpp-rl"
+    #: prior-trajectory npz to preload into off-policy replay buffers (RLPD-style)
+    replay_prefill_path: Path | None = None
     policy_kwargs: dict = {}
     algo_kwargs: dict = {}
 

@@ -85,6 +85,15 @@ def run_training_job(registry: ResearchRegistry, row: dict) -> None:
 
     spec = ExperimentSpec(**json.loads(row["spec_json"]))
     experiment_id = row["experiment_id"]
+
+    # self-sufficient prefill jobs: build the prior dataset if it is missing
+    prefill = spec.overrides.get("training.replay_prefill_path")
+    if prefill and not Path(prefill).exists():
+        from hybrid_vpp.training.datasets import build_prior_dataset
+
+        registry.log_event(experiment_id, "building_prior_dataset", str(prefill))
+        build_prior_dataset(Path("configs/default.yaml"), Path(prefill).parent)
+
     cfg, config_path = build_config(spec, Path("configs/default.yaml"))
 
     heartbeat_dir = Path("runs/heartbeats")
