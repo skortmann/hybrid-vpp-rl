@@ -91,9 +91,11 @@ def run_training_job(registry: ResearchRegistry, row: dict) -> None:
     heartbeat_path = heartbeat_dir / f"{experiment_id}.json"
     registry.update(experiment_id, heartbeat_path=str(heartbeat_path))
 
-    # self-sufficient prefill jobs: build the prior dataset if it is missing
+    # self-sufficient prior-data jobs: build the dataset if it is missing
     # (long phase — heartbeat via thread so the watchdog sees liveness)
-    prefill = spec.overrides.get("training.replay_prefill_path")
+    prefill = spec.overrides.get("training.replay_prefill_path") or spec.overrides.get(
+        "training.bc_pretrain_path"
+    )
     if prefill and not Path(prefill).exists():
         from hybrid_vpp.training.datasets import build_prior_dataset
         from hybrid_vpp.training.research_state import HeartbeatThread

@@ -424,6 +424,11 @@ class TrainingConfig(BaseModel):
     wandb_project: str = "hybrid-vpp-rl"
     #: prior-trajectory npz to preload into off-policy replay buffers (RLPD-style)
     replay_prefill_path: Path | None = None
+    #: prior-trajectory npz for behavior-cloned actor initialization
+    bc_pretrain_path: Path | None = None
+    #: controller label whose transitions are imitated (dataset metadata)
+    bc_controller: str = "rule_based"
+    bc_epochs: int = Field(default=25, ge=1)
     policy_kwargs: dict = {}
     algo_kwargs: dict = {}
 

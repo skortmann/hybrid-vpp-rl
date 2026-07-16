@@ -130,6 +130,49 @@ def prefill_replay_buffer(model, dataset_path: Path, n_envs: int) -> int:
     return total
 
 
+def behavior_clone_actor(
+    model, dataset_path: Path, controller: str, epochs: int, batch_size: int = 512
+) -> float:
+    """Supervised pretraining of the actor mean on one controller's actions.
+
+    Fits the deterministic head of the (torch) actor to the demonstrated
+    actions with MSE before RL fine-tuning. Supported for SAC/TQC-style
+    policies with an ``actor.mu`` head; other algorithms raise loudly.
+    """
+    import numpy as np
+    import torch
+
+    actor = getattr(model.policy, "actor", None)
+    if actor is None or not hasattr(actor, "mu"):
+        raise ValueError("bc_pretrain_path requires a SAC/TQC-style torch actor")
+
+    data = np.load(dataset_path, allow_pickle=False)
+    mask = data["controller"] == controller
+    if not mask.any():
+        raise ValueError(f"no transitions from controller {controller!r} in dataset")
+    obs = torch.as_tensor(data["obs"][mask], dtype=torch.float32, device=model.device)
+    # imitate the pre-squash mean: atanh of the clipped stored action
+    actions = torch.as_tensor(
+        np.arctanh(np.clip(data["action"][mask], -0.999, 0.999)),
+        dtype=torch.float32,
+        device=model.device,
+    )
+    optimizer = torch.optim.Adam(actor.parameters(), lr=1e-3)
+    final = float("nan")
+    for _ in range(epochs):
+        perm = torch.randperm(len(obs))
+        for i in range(0, len(obs), batch_size):
+            idx = perm[i : i + batch_size]
+            features = actor.extract_features(obs[idx], actor.features_extractor)
+            mean = actor.mu(actor.latent_pi(features))
+            loss = torch.nn.functional.mse_loss(mean, actions[idx])
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            final = float(loss.detach())
+    return final
+
+
 def train(
     config_path: str | Path,
     resume_from: str | None = None,
@@ -224,6 +267,12 @@ def train(
     if tc.replay_prefill_path is not None:
         n_added = prefill_replay_buffer(model, Path(tc.replay_prefill_path), tc.n_envs)
         log.info("prefilled replay buffer with %d prior transitions", n_added)
+
+    if tc.bc_pretrain_path is not None:
+        loss = behavior_clone_actor(
+            model, Path(tc.bc_pretrain_path), tc.bc_controller, tc.bc_epochs
+        )
+        log.info("behavior-cloned actor on %s (final MSE %.5f)", tc.bc_controller, loss)
 
     eval_freq = max(tc.eval_freq // tc.n_envs, 1)
     callbacks = [
