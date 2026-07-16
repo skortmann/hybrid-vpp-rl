@@ -1,0 +1,31 @@
+| experiment | phase | state | mean EUR/day | median | info-gap |
+|---|---|---|---|---|---|
+| S3-crossq-hourly | screening | COMPLETED | 61,414 | 57,564 | -20.0% |
+| L1-sac-hourly-target | learnability | COMPLETED | 54,992 | 59,147 | -7.5% |
+| L1-milp-anchor | analysis | COMPLETED | 53,739 | 55,573 | n/a |
+| S2-ppo-target | screening | COMPLETED | 51,421 | 53,115 | -0.5% |
+| C1-ppo-target-seed1 | confirmation | COMPLETED | 50,487 | 50,873 | +1.3% |
+| S2-ppo-residual | screening | COMPLETED | 50,020 | 56,603 | +2.2% |
+| S2-ppo-hourly | screening | COMPLETED | 49,848 | 48,211 | +2.6% |
+| S3-sac-strategic | screening | COMPLETED | 49,213 | 52,723 | +3.8% |
+| S2-tqc-hourly | screening | COMPLETED | 49,140 | 44,887 | +4.0% |
+| S2-sac-hourly | screening | COMPLETED | 48,873 | 42,931 | +4.5% |
+| S3-crossq-strategic | screening | COMPLETED | 48,679 | 49,456 | +4.9% |
+| C1-ppo-target-seed3 | confirmation | COMPLETED | 48,650 | 50,660 | +4.9% |
+| V2-crossq-strategic | screening_v2 | COMPLETED | 47,099 | 49,392 | +7.1% |
+| V2C-crossq-strategic-seed0 | confirmation_v2 | COMPLETED | 46,510 | 49,923 | +8.2% |
+| V2R-crossq-strategic-prefill | confirmation_v2 | COMPLETED | 45,958 | 48,643 | +9.3% |
+| V2C-crossq-strategic-seed1 | confirmation_v2 | COMPLETED | 45,645 | 49,192 | +9.9% |
+| V2C-crossq-strategic-seed2 | confirmation_v2 | COMPLETED | 45,226 | 46,338 | +10.8% |
+| V2R-sac-strategic-prefill | confirmation_v2 | COMPLETED | 44,752 | 47,948 | +11.7% |
+| C1-ppo-target-seed2 | confirmation | COMPLETED | 44,725 | 43,775 | +12.6% |
+| V2C-sac-strategic-seed2 | confirmation_v2 | COMPLETED | 44,679 | 46,762 | +11.8% |
+| V2C-sac-strategic-seed0 | confirmation_v2 | COMPLETED | 44,050 | 46,703 | +13.1% |
+| V2C-sac-strategic-seed1 | confirmation_v2 | COMPLETED | 44,018 | 46,863 | +13.1% |
+| V2-ppo-residual | screening_v2 | COMPLETED | 43,554 | 50,186 | +14.1% |
+| V2-sac-strategic | screening_v2 | COMPLETED | 42,627 | 45,320 | +15.9% |
+| S2-tqc-residual | screening | COMPLETED | 41,943 | 48,845 | +18.0% |
+| V2-ppo-hourly | screening_v2 | COMPLETED | 38,986 | 39,171 | +23.1% |
+| V2-ppo-target | screening_v2 | COMPLETED | 35,333 | 38,615 | +30.3% |
+| L1-ppo-hourly-target | learnability | COMPLETED | 15,383 | 8,979 | +69.9% |
+| S2-ppo-direct | screening | COMPLETED | 6,856 | 4,487 | +86.6% |

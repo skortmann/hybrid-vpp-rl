@@ -148,6 +148,30 @@ Consequences (all recorded in the registry decisions):
   *all* controllers; the five leading formulations are re-screened under
   new experiment IDs (`V2-*`) against re-computed anchors.
 
+## env-v2 confirmation wave (2026-07-16)
+
+Multi-seed confirmation under penalized economics (300k steps, fixed 30
+validation days; anchors: do-nothing 46,734 / rule-based 50,042 /
+info-MILP 50,679 / perfect 54,704 EUR/day):
+
+| formulation | seeds | mean | median range |
+|---|---|---|---|
+| CrossQ-strategic scratch | 3 | 45,794 (±0.7k) | 46.3–49.9k |
+| CrossQ-strategic + replay prefill | 1 | 45,958 | 48,643 |
+| SAC-strategic scratch | 3 | 44,249 (±0.4k) | 46.7–46.9k |
+| SAC-strategic + replay prefill | 1 | 44,752 | 47,948 |
+
+Findings: results are highly reproducible across seeds (spreads < 1.5k),
+so this is a converged plateau, not noise; **replay prefill does not move
+the plateau** (differences within seed noise) — prior transitions in the
+buffer do not pull the entropy-regularized policy onto the rule-based
+tight-tracking mode, although that mode lies inside the action space and
+outperforms the learned policies by 4–6k. Near-optimality criteria are
+NOT met under env-v2. Open levers before a frontier declaration:
+behavior-cloned actor initialization (imitate, then fine-tune), offline
+IQL/CQL on the prior dataset, hybrid MILP+RL, and the two queued
+hypothesis tests (1M-step budget; colder-entropy SAC).
+
 ## Status log
 
 * 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4
