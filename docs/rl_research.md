@@ -120,6 +120,34 @@ Not applicable: DQN/QR-DQN (no justified discretization yet); MaskablePPO
   only, strategic schema, behaviors from do-nothing to high-turnover plus
   seeded random policies — the substrate for RLPD/IQL/CQL.
 
+## The imbalance-speculation finding (env-v1 → env-v2)
+
+The completed env-v1 screening produced scores far above the perfect-
+foresight anchor (CrossQ+hourly: 61.4k EUR/day vs. 55.0k). Trajectory
+audits showed why: under env-v1 economics, deliberate deviation between
+contracted position and physical delivery settles at the historical reBAP
+with **no penalty**, so target-position policies learned large-scale
+imbalance speculation — 50–67% of their profit came from the imbalance
+component, with |deviation| of the order of delivered energy and market
+turnover at the volume caps. The accounting is correct and the behavior is
+"legal" in-model, but it is not admissible as market-operation
+performance: real balancing groups must not deviate deliberately, and the
+price-taker assumption breaks at such volumes.
+
+Consequences (all recorded in the registry decisions):
+
+* env-v1 results from target-position formulations are **excluded from
+  the operational ranking** (kept, annotated, and reported as a model
+  finding). The apparent PPO-target "above the anchor" screening result
+  did not replicate across seeds either (51.4k / 50.5k / 44.7k / 48.7k).
+* **SAC-strategic is the clean env-v1 leader** (imbalance share −9%,
+  deviation ratio 0.42, turnover ~660 MWh/day) — its action space
+  structurally cannot speculate.
+* **env-v2** adds `deviation_penalty_eur_per_mwh = 25` (a documented
+  proxy for balancing-group compliance obligations) to the settlement for
+  *all* controllers; the five leading formulations are re-screened under
+  new experiment IDs (`V2-*`) against re-computed anchors.
+
 ## Status log
 
 * 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4
