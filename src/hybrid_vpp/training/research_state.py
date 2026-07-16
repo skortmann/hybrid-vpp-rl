@@ -311,6 +311,42 @@ class SupervisorLock:
             return None
 
 
+class HeartbeatThread:
+    """Background heartbeat emitter for long non-training phases (dataset
+    builds, evaluations) where no SB3 callback is running."""
+
+    def __init__(
+        self, path: Path, experiment_id: str, phase: str, interval_s: float = 30.0
+    ) -> None:
+        import threading
+
+        self.path = path
+        self.experiment_id = experiment_id
+        self.phase = phase
+        self.interval_s = interval_s
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def _run(self) -> None:
+        while not self._stop.is_set():
+            Heartbeat(
+                experiment_id=self.experiment_id,
+                timestamp=utcnow(),
+                pid=os.getpid(),
+                environment_steps=-1,
+                phase=self.phase,
+            ).write(self.path)
+            self._stop.wait(self.interval_s)
+
+    def __enter__(self) -> HeartbeatThread:
+        self._thread.start()
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self._stop.set()
+        self._thread.join(timeout=5)
+
+
 def wait_and_retry_claim(registry: ResearchRegistry, attempts: int = 3) -> dict | None:
     for k in range(attempts):
         try:

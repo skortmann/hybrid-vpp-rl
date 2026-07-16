@@ -79,8 +79,12 @@ class Watchdog:
             return False
         try:
             os.kill(pid, 0)
-            return True
         except (ProcessLookupError, PermissionError):
+            return False
+        try:  # a zombie passes the signal check but is dead for our purposes
+            with open(f"/proc/{pid}/stat") as fh:
+                return fh.read().split(") ")[-1].split()[0] != "Z"
+        except OSError:
             return False
 
     def diagnose(self, row: dict, now: float) -> str | None:
@@ -97,15 +101,18 @@ class Watchdog:
                 return "no heartbeat after start timeout"
             return None
         hb_age = now - datetime.fromisoformat(heartbeat.timestamp).timestamp()
-        if heartbeat.phase == "evaluating":
+        if heartbeat.phase in ("evaluating", "building_dataset"):
+            # long setup/eval phases heartbeat via thread; only the (longer)
+            # phase timeout applies, never the step-progress rule
             if hb_age > self.eval_timeout_s:
-                return f"evaluation heartbeat stale for {hb_age / 60:.0f} min"
+                return f"{heartbeat.phase} heartbeat stale for {hb_age / 60:.0f} min"
             return None
         if hb_age > self.heartbeat_timeout_s:
             return f"heartbeat stale for {hb_age / 60:.0f} min"
-        # step progress: compare with last registry snapshot
+        # step progress: only meaningful while actually training
         if (
-            heartbeat.environment_steps >= 0
+            heartbeat.phase == "training"
+            and heartbeat.environment_steps >= 0
             and heartbeat.environment_steps == (row["last_env_steps"] or 0)
             and row["updated_at"]
             and now - datetime.fromisoformat(row["updated_at"]).timestamp() > self.no_progress_s
@@ -218,6 +225,17 @@ class Supervisor:
     def handle_failed_retryable(self) -> None:
         for row in self.registry.all(state="FAILED_RETRYABLE"):
             self._apply_retry_policy(row)
+
+    @staticmethod
+    def _reap_children() -> None:
+        """Reap exited worker children so they never linger as zombies."""
+        try:
+            while True:
+                pid, _ = os.waitpid(-1, os.WNOHANG)
+                if pid == 0:
+                    break
+        except ChildProcessError:
+            pass
 
     # -------------------------------------------------------------- schedule
 
@@ -347,6 +365,7 @@ class Supervisor:
 
     def cycle(self) -> bool:
         """One supervision cycle; returns True when terminal."""
+        self._reap_children()
         self.reconcile()
         self.handle_failed_retryable()
         self.schedule()
