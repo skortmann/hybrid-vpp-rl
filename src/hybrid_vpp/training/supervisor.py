@@ -42,13 +42,22 @@ log = logging.getLogger(__name__)
 ARTIFACTS = Path("artifacts")
 LEDGER = Path("docs/rl_research_log.md")
 
-#: anchors on the fixed 30 screening validation days (EUR/day)
+#: anchors on the fixed 30 screening validation days (EUR/day), per economics
 ANCHORS = {
     "do_nothing": 47908.0,
     "rule_based": 50861.0,
     "milp_info": 51165.0,
     "milp_perfect": 54994.0,
 }
+ANCHORS_V2_PATH = Path("artifacts/anchors_v2.json")
+
+
+def anchors_for(phase: str) -> dict[str, float]:
+    """env-v2 phases are gapped against the deviation-penalized anchors."""
+    if phase.endswith("_v2") and ANCHORS_V2_PATH.exists():
+        payload = json.loads(ANCHORS_V2_PATH.read_text())
+        return {name: values["mean"] for name, values in payload["anchors"].items()}
+    return ANCHORS
 
 
 class Watchdog:
@@ -133,7 +142,12 @@ class Supervisor:
         self.poll_seconds = poll_seconds
         self.watchdog = Watchdog()
         self.lock = SupervisorLock(registry_path.parent / "supervisor.lock")
-        self._ledger_event_id = 0
+        # ledger cursor persists across supervisor restarts (no duplicate entries)
+        self._cursor_path = registry_path.parent / "ledger.cursor"
+        try:
+            self._ledger_event_id = int(self._cursor_path.read_text().strip())
+        except (OSError, ValueError):
+            self._ledger_event_id = 0
 
     # ------------------------------------------------------------- reconcile
 
@@ -248,7 +262,8 @@ class Supervisor:
         for r in completed:
             mean = r["result"]["mean_revenue_eur"]
             median = r["result"].get("median_revenue_eur", float("nan"))
-            gap = (ANCHORS["milp_info"] - mean) / ANCHORS["milp_info"] * 100
+            anchors = anchors_for(r["phase"])
+            gap = (anchors["milp_info"] - mean) / anchors["milp_info"] * 100
             gap_str = f"{gap:+.1f}%" if r["kind"] == "training" else "n/a"
             lines.append(
                 f"| {r['experiment_id']} | {r['phase']} | {r['state']} "
@@ -326,6 +341,7 @@ class Supervisor:
                     f"- `{e['ts']}` **{e['event']}** {e['experiment_id'] or ''} — {e['detail']}\n"
                 )
         self._ledger_event_id = events[-1]["id"]
+        self._cursor_path.write_text(str(self._ledger_event_id))
 
     # ------------------------------------------------------------------ run
 
