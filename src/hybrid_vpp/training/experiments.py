@@ -283,6 +283,34 @@ SPECS: list[ExperimentSpec] = [
         total_timesteps=200_000,
         n_envs=4,
     ),
+    # ---- Tier 1 (advanced program): strategic actions and CrossQ
+    ExperimentSpec(
+        "S3-sac-strategic",
+        "screening",
+        algorithm="sac",
+        action_mode="strategic",
+        total_timesteps=120_000,
+        n_envs=4,
+        notes="Tier-1: 7-dim strategic actions, SAC",
+    ),
+    ExperimentSpec(
+        "S3-crossq-strategic",
+        "screening",
+        algorithm="crossq",
+        action_mode="strategic",
+        total_timesteps=120_000,
+        n_envs=4,
+        notes="Tier-1: CrossQ (SBX) on strategic actions",
+    ),
+    ExperimentSpec(
+        "S3-crossq-hourly",
+        "screening",
+        algorithm="crossq",
+        action_mode="hourly_target",
+        total_timesteps=200_000,
+        n_envs=4,
+        notes="Tier-1: CrossQ on hourly target-position actions",
+    ),
 ]
 
 RUN_ONLY: list[str] | None = None  # e.g. ["L1-ppo-hourly-target"]
