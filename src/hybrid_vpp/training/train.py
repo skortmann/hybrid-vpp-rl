@@ -69,7 +69,44 @@ class EpisodeMetricsCallback:
         return _Callback()
 
 
-def train(config_path: str | Path, resume_from: str | None = None) -> Path:
+class HeartbeatCallback:
+    """Writes a machine-readable heartbeat file every ``interval_s`` seconds."""
+
+    def __new__(cls, path: Path, experiment_id: str, interval_s: float = 30.0):
+        import os
+        import time as _time
+
+        from stable_baselines3.common.callbacks import BaseCallback
+
+        from hybrid_vpp.training.research_state import Heartbeat, utcnow
+
+        class _Callback(BaseCallback):
+            def __init__(self) -> None:
+                super().__init__()
+                self._last = 0.0
+
+            def _on_step(self) -> bool:
+                now = _time.time()
+                if now - self._last >= interval_s:
+                    self._last = now
+                    Heartbeat(
+                        experiment_id=experiment_id,
+                        timestamp=utcnow(),
+                        pid=os.getpid(),
+                        environment_steps=int(self.num_timesteps),
+                        phase="training",
+                    ).write(path)
+                return True
+
+        return _Callback()
+
+
+def train(
+    config_path: str | Path,
+    resume_from: str | None = None,
+    heartbeat_path: Path | None = None,
+    experiment_id: str | None = None,
+) -> Path:
     import torch
     from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
     from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -124,12 +161,15 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
         except Exception:
             log.exception("wandb init failed — continuing with tensorboard only")
 
-    # fork: workers inherit the parent's loaded market-data frames (copy-on-write)
+    # spawn (not fork): forking a parent that already carries torch/wandb
+    # threads deadlocks the workers on inherited locks — observed as lanes
+    # freezing on their second train() call. Spawned workers re-import and
+    # reload the parquet caches (~5 s each), which is an acceptable cost.
     train_env = SubprocVecEnv(
         [make_env_fn(cfg, "train", rank) for rank in range(tc.n_envs)],
-        start_method="fork",
+        start_method="spawn",
     )
-    eval_env = SubprocVecEnv([make_env_fn(cfg, "val", 900, sequential=True)], start_method="fork")
+    eval_env = SubprocVecEnv([make_env_fn(cfg, "val", 900, sequential=True)], start_method="spawn")
 
     from hybrid_vpp.training.algorithms import algo_class, default_kwargs, policy_name
 
@@ -167,6 +207,8 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
         ),
         EpisodeMetricsCallback(),
     ]
+    if heartbeat_path is not None:
+        callbacks.append(HeartbeatCallback(Path(heartbeat_path), experiment_id or run_dir.name))
 
     model.learn(
         total_timesteps=tc.total_timesteps,
