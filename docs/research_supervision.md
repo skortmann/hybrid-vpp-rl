@@ -55,6 +55,16 @@ systemctl --user daemon-reload
 systemctl --user enable --now hybrid-vpp-rl-supervisor
 ```
 
+## Operational notes
+
+* **Code skew**: workers import modules lazily, so editing source while
+  long jobs run can mix new modules with old in-memory objects (observed:
+  a live `strategic.py` edit crashed a 5-hour run at its evaluation
+  phase). Land code changes between waves, or accept that affected jobs
+  fail once and are retried by fresh, consistent workers.
+* `pkill -f` patterns must not match the invoking shell's own command
+  line (bracket a character: `hybrid_vpp[.]training[.]supervisor`).
+
 ## Terminal states
 
 The loop stops only in a named terminal state — `SUCCESS_NEAR_OPTIMAL`,
