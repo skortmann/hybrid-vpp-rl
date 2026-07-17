@@ -1,0 +1,60 @@
+{
+  "terminal_state": "EMPIRICAL_FRONTIER_REACHED",
+  "generated_at": "2026-07-17T14:14:36.647340+00:00",
+  "winner": {
+    "formulation": "V6 hybrid: SAC on strategic market actions (act-v5, gain_max 1.25) + deterministic rule-based dispatch",
+    "economics": "env-v2 (reBAP settlement + 25 EUR/MWh deviation penalty)",
+    "budget": "300k steps/seed, 5 seeds"
+  },
+  "test_split": {
+    "period": "2026-02-01 .. 2026-05-09",
+    "n_days": 98,
+    "rl_seed_means": [
+      40735.72228688909,
+      46974.86704624423,
+      48103.65485125356,
+      43783.106714230984,
+      46139.38975447231
+    ],
+    "rl_pooled_mean": 45147.348130618026,
+    "rl_pooled_median": 48174.07766735656,
+    "baselines_mean": {
+      "do_nothing": 42511.99456957991,
+      "rule_based": 46850.046475429896,
+      "milp_info": 47598.580777883406,
+      "milp_perfect": 52007.245361741254
+    },
+    "baselines_median": {
+      "do_nothing": 41462.30423498269,
+      "rule_based": 48464.28147042562,
+      "milp_info": 49293.79699283141,
+      "milp_perfect": 52572.989954061704
+    },
+    "paired_rl_minus_rule_based_mean": -1702.6983448118651,
+    "paired_ci95": [
+      -5085.177797242724,
+      667.4765120277806
+    ],
+    "median_info_gap_pct": 0.06560030287483147,
+    "median_perfect_foresight_gap_pct": 7.181867560226646,
+    "seed_mean_std": 2622.4918922333627
+  },
+  "validation_split": {
+    "n_days": 30,
+    "rl_pooled_mean": 49449.0,
+    "rl_pooled_median": 51315.0,
+    "median_info_gap_pct": 0.71,
+    "paired_ci95_vs_rule_based": [
+      -1157.0,
+      -6.0
+    ]
+  },
+  "criteria": {
+    "median_info_gap_leq_5pct": true,
+    "ci_lower_geq_best_baseline": false,
+    "five_seeds": true,
+    "no_exploits_audited": true,
+    "test_untouched_until_lock": true
+  },
+  "key_finding": "validation-best seed (50.6k) was the WORST test generalizer (40.7k): 30 validation days over-select; seed-level generalization variance dominates the remaining gap"
+}
