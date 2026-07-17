@@ -12,9 +12,17 @@ S2-sac-hourly,screening,COMPLETED,48873,42931,4.48
 S3-crossq-strategic,screening,COMPLETED,48679,49456,4.86
 C1-ppo-target-seed3,confirmation,COMPLETED,48650,50660,4.92
 V2-crossq-strategic,screening_v2,COMPLETED,47099,49392,7.06
+V4-wide-sac-strategic-seed2,confirmation_v2,COMPLETED,46906,49007,7.45
+V2T-sac-strategic-cold,confirmation_v2,COMPLETED,46811,48706,7.63
+V4-wide-sac-strategic-seed0,confirmation_v2,COMPLETED,46676,49845,7.90
 V2C-crossq-strategic-seed0,confirmation_v2,COMPLETED,46510,49923,8.23
+V2T-sac-strategic-cold-seed2,confirmation_v2,COMPLETED,46501,46805,8.24
+V3-bc-sac-strategic-seed0,confirmation_v2,COMPLETED,46206,48449,8.83
 V2R-crossq-strategic-prefill,confirmation_v2,COMPLETED,45958,48643,9.31
+V2T-sac-strategic-cold-seed1,confirmation_v2,COMPLETED,45890,48949,9.45
+V3-bc-sac-strategic-seed1,confirmation_v2,COMPLETED,45833,48785,9.56
 V2C-crossq-strategic-seed1,confirmation_v2,COMPLETED,45645,49192,9.93
+V4-wide-sac-strategic-seed1,confirmation_v2,COMPLETED,45545,47711,10.13
 V2C-crossq-strategic-seed2,confirmation_v2,COMPLETED,45226,46338,10.76
 V2R-sac-strategic-prefill,confirmation_v2,COMPLETED,44752,47948,11.70
 C1-ppo-target-seed2,confirmation,COMPLETED,44725,43775,12.59

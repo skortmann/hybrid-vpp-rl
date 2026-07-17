@@ -172,6 +172,35 @@ behavior-cloned actor initialization (imitate, then fine-tune), offline
 IQL/CQL on the prior dataset, hybrid MILP+RL, and the two queued
 hypothesis tests (1M-step budget; colder-entropy SAC).
 
+## Mechanism ladder (consolidated, 2026-07-17)
+
+Three successively deeper causes of the RL–baseline gap were identified,
+fixed or characterized, each with controlled evidence:
+
+1. **Imbalance speculation** (env-v1): unpenalized reBAP settlement made
+   deliberate deviation the dominant profit channel (up to 67% of profit).
+   Fixed by env-v2 deviation penalty; contaminated results annotated.
+2. **Corner-optimum unreachability** (act-v5): rule-based behavior sits at
+   correction gains = 1 → raw action = +1, the corner of the squashed-
+   Gaussian action box, which entropy-regularized policies cannot reach.
+   Explains why prefill/BC/budget/entropy interventions all converged to
+   the same sub-baseline attractor. Fixed by `strategic_gain_max = 1.25`
+   (interior optimum); effect measurable but modest (medians +0.7k, best
+   seed median within 1k of rule-based).
+3. **Under-priced reBAP tail risk** (current frontier): paired per-day
+   decomposition shows RL market revenue ≈ rule-based, but RL carries
+   3–6× the deviation (150–195 vs 26–73 MWh/day); volatile-reBAP days
+   produce five-figure losses (worst 5 of 30 days = 46% of the gap).
+   The risk-neutral objective accepts this trade; a disciplined policy
+   would not. Candidate remedies: risk-sensitive objectives (TQC/CVaR),
+   deviation-penalty shaping during training, or hybrid dispatch.
+
+Best honest results (env-v2, 30 fixed validation days, 3 seeds each):
+cold-entropy SAC-strategic 46.4k ± 0.5k mean / ≈48.2k median; V4
+interiorized 46.4k / 48.9k; rule-based 50.0k / 50.9k; info-MILP 50.7k.
+Near-optimality criteria not met; the program continues on the risk-
+discipline track.
+
 ## Status log
 
 * 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4

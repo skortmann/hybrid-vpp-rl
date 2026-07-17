@@ -13,9 +13,17 @@
 | S3-crossq-strategic | screening | COMPLETED | 48,679 | 49,456 | +4.9% |
 | C1-ppo-target-seed3 | confirmation | COMPLETED | 48,650 | 50,660 | +4.9% |
 | V2-crossq-strategic | screening_v2 | COMPLETED | 47,099 | 49,392 | +7.1% |
+| V4-wide-sac-strategic-seed2 | confirmation_v2 | COMPLETED | 46,906 | 49,007 | +7.4% |
+| V2T-sac-strategic-cold | confirmation_v2 | COMPLETED | 46,811 | 48,706 | +7.6% |
+| V4-wide-sac-strategic-seed0 | confirmation_v2 | COMPLETED | 46,676 | 49,845 | +7.9% |
 | V2C-crossq-strategic-seed0 | confirmation_v2 | COMPLETED | 46,510 | 49,923 | +8.2% |
+| V2T-sac-strategic-cold-seed2 | confirmation_v2 | COMPLETED | 46,501 | 46,805 | +8.2% |
+| V3-bc-sac-strategic-seed0 | confirmation_v2 | COMPLETED | 46,206 | 48,449 | +8.8% |
 | V2R-crossq-strategic-prefill | confirmation_v2 | COMPLETED | 45,958 | 48,643 | +9.3% |
+| V2T-sac-strategic-cold-seed1 | confirmation_v2 | COMPLETED | 45,890 | 48,949 | +9.5% |
+| V3-bc-sac-strategic-seed1 | confirmation_v2 | COMPLETED | 45,833 | 48,785 | +9.6% |
 | V2C-crossq-strategic-seed1 | confirmation_v2 | COMPLETED | 45,645 | 49,192 | +9.9% |
+| V4-wide-sac-strategic-seed1 | confirmation_v2 | COMPLETED | 45,545 | 47,711 | +10.1% |
 | V2C-crossq-strategic-seed2 | confirmation_v2 | COMPLETED | 45,226 | 46,338 | +10.8% |
 | V2R-sac-strategic-prefill | confirmation_v2 | COMPLETED | 44,752 | 47,948 | +11.7% |
 | C1-ppo-target-seed2 | confirmation | COMPLETED | 44,725 | 43,775 | +12.6% |
