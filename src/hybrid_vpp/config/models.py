@@ -408,6 +408,10 @@ class EpisodeConfig(BaseModel):
     ] = "direct"
     #: max market correction per hour anchor in residual mode, MW
     residual_scale_mw: float = Field(default=25.0, gt=0)
+    #: upper bound of the strategic correction gains. 1.0 places the
+    #: rule-based optimum at the action-space corner (unreachable for
+    #: squashed-Gaussian policies); >1 moves it into the interior.
+    strategic_gain_max: float = Field(default=1.0, ge=1.0, le=2.0)
 
 
 class TrainingConfig(BaseModel):

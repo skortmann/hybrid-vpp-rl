@@ -86,19 +86,21 @@ class StrategicTranslator:
                     orders[p] = mw
             return AuctionAction(orders)
 
+        gain_max = self.cfg.episode.strategic_gain_max
+
         if event.type in (
             EventType.IDA1_GATE_CLOSURE,
             EventType.IDA2_GATE_CLOSURE,
             EventType.IDA3_GATE_CLOSURE,
         ):
-            gain = _unit(raw[2])
+            gain = _unit(raw[2]) * gain_max
             assert isinstance(baseline, AuctionAction)
             return AuctionAction(
                 {p: gain * mw for p, mw in baseline.orders.items() if abs(gain * mw) > 1e-3}
             )
 
         if event.type == EventType.IDC_DECISION:
-            gain = _unit(raw[3])
+            gain = _unit(raw[3]) * gain_max
             assert isinstance(baseline, IdcAction)
             return IdcAction(
                 {p: gain * mw for p, mw in baseline.orders.items() if abs(gain * mw) > 1e-3}
@@ -106,7 +108,7 @@ class StrategicTranslator:
 
         # physical dispatch
         assert isinstance(baseline, DispatchAction)
-        tracking = _unit(raw[4])
+        tracking = min(_unit(raw[4]) * gain_max, 1.0)
         threshold = float(raw[5]) * 100.0
         bias = float(raw[6])
         bat = self.cfg.site.battery
