@@ -120,8 +120,11 @@ def run_training_job(registry: ResearchRegistry, row: dict) -> None:
 
     best = run_dir / "best" / "best_model.zip"
     model_path = best if best.exists() else run_dir / "final_model.zip"
-    days = evaluation_days(config_path)
-    result = evaluate_checkpoint(config_path, model_path, days)
+    # risk-shaped runs evaluate under the true economics (eval config)
+    eval_config = config_path.parent / f"{experiment_id}-eval.yaml"
+    eval_config_path = eval_config if eval_config.exists() else config_path
+    days = evaluation_days(eval_config_path)
+    result = evaluate_checkpoint(eval_config_path, model_path, days)
 
     registry.update(experiment_id, state="VALIDATING")
     problems = validate_training_result(result, config_path, model_path, len(days))
