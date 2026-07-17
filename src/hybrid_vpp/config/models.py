@@ -412,6 +412,9 @@ class EpisodeConfig(BaseModel):
     #: rule-based optimum at the action-space corner (unreachable for
     #: squashed-Gaussian policies); >1 moves it into the interior.
     strategic_gain_max: float = Field(default=1.0, ge=1.0, le=2.0)
+    #: hybrid H4: dispatch follows the deterministic rule-based controller
+    #: exactly (RL controls only market decisions; dispatch dims are inert)
+    strategic_fixed_dispatch: bool = False
 
 
 class TrainingConfig(BaseModel):

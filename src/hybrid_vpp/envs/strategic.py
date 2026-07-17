@@ -108,6 +108,8 @@ class StrategicTranslator:
 
         # physical dispatch
         assert isinstance(baseline, DispatchAction)
+        if self.cfg.episode.strategic_fixed_dispatch:
+            return baseline  # hybrid H4: deterministic rule-based dispatch
         tracking = min(_unit(raw[4]) * gain_max, 1.0)
         threshold = float(raw[5]) * 100.0
         bias = float(raw[6])
