@@ -201,6 +201,21 @@ interiorized 46.4k / 48.9k; rule-based 50.0k / 50.9k; info-MILP 50.7k.
 Near-optimality criteria not met; the program continues on the risk-
 discipline track.
 
+## V6 hybrid breakthrough (2026-07-17)
+
+Fixing the diagnosed tail-risk mechanism architecturally — RL keeps the
+market decisions (act-v5, interiorized gains) while dispatch follows the
+deterministic rule-based tracker (`strategic_fixed_dispatch`) — closed the
+gap: seed 0 reaches **50,599 mean / 52,183 median** on the fixed
+validation days, beating rule-based (50,042 / 50,874) on both statistics
+with a mean info-MILP gap of **0.16%** (median above the MILP's median).
+Seed 1: 49,211 / 51,158. Trajectory audit is clean (imbalance +9.7% of
+profit, |deviation| 94 MWh/day, turnover 613 MWh/day, 0.85 cycles/day) —
+the improvement is market skill on top of guaranteed dispatch discipline,
+confirming the mechanism chain by intervention. Five-seed confirmation in
+progress; test-split evaluation remains locked until the validation
+criteria are formally met.
+
 ## Status log
 
 * 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4
