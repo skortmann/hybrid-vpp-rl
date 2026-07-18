@@ -135,3 +135,77 @@ class StrategicTranslator:
             wind_curtail_mw=curtail * share,
             pv_curtail_mw=curtail * (1.0 - share),
         )
+
+
+#: zero-mean quarter-hour tilt basis within one hour anchor (sums to 0, max |1|)
+INTRA_HOUR_BASIS = (-1.0, -1.0 / 3.0, 1.0 / 3.0, 1.0)
+
+
+@dataclass
+class StrategicResidualTranslator:
+    """act-v6: strategic backbone plus a low-rank quarter-hour market residual.
+
+    The first ``N_STRATEGIC_DIMS`` entries are translated exactly like
+    ``strategic`` (act-v5). At auction/IDC events the remaining entries add a
+    per-product correction built from two per-hour-anchor coefficient blocks:
+
+    * an **anchor** shift (±``episode.residual_scale_mw``) applied uniformly
+      to every quarter-hour of the hour, and
+    * a **tilt** (±``episode.intra_hour_residual_scale_mw``) distributed over
+      the hour's quarter-hours with the zero-mean basis ``INTRA_HOUR_BASIS``,
+      so it reshapes the hour without changing its net traded volume.
+
+    Dispatch is delegated to the strategic backbone unchanged (the residual
+    acts on market orders only). Zero residual coefficients reproduce
+    ``strategic`` exactly; mid-range strategic values with zero residuals
+    therefore reproduce the rule-based controller (test-pinned).
+    """
+
+    cfg: ExperimentConfig
+    strategic: StrategicTranslator
+    episode_days: int = 1
+
+    @property
+    def n_anchors(self) -> int:
+        from hybrid_vpp.envs.actions import MAX_HOURS_PER_DAY
+
+        return MAX_HOURS_PER_DAY * self.episode_days
+
+    def translate(
+        self,
+        raw: np.ndarray,
+        window_start_utc: pd.Timestamp,
+        event: MarketEvent,
+        sim: Simulator,
+    ) -> Action:
+        base = self.strategic.translate(raw[:N_STRATEGIC_DIMS], event, sim)
+        if event.type == EventType.PHYSICAL_DISPATCH:
+            return base
+
+        n = self.n_anchors
+        anchors = raw[N_STRATEGIC_DIMS : N_STRATEGIC_DIMS + n]
+        tilts = raw[N_STRATEGIC_DIMS + n : N_STRATEGIC_DIMS + 2 * n]
+        anchor_scale = self.cfg.episode.residual_scale_mw
+        tilt_scale = self.cfg.episode.intra_hour_residual_scale_mw
+        threshold = 1e-3 * max(anchor_scale, tilt_scale)
+
+        assert isinstance(base, AuctionAction | IdcAction)
+        orders = dict(base.orders)
+        for p in event.products:
+            corrections = []
+            for qh in p.quarter_hours():
+                delta = qh.start_utc - window_start_utc
+                hour = int(delta / pd.Timedelta(hours=1))
+                if not 0 <= hour < n:
+                    raise ValueError(f"product {p.id} outside episode window")
+                quarter = int((delta % pd.Timedelta(hours=1)) / pd.Timedelta(minutes=15))
+                corrections.append(
+                    anchors[hour] * anchor_scale
+                    + tilts[hour] * tilt_scale * INTRA_HOUR_BASIS[quarter]
+                )
+            correction = float(np.mean(corrections))
+            if abs(correction) > threshold:
+                orders[p] = orders.get(p, 0.0) + correction
+        if event.type == EventType.IDC_DECISION:
+            return IdcAction(orders)
+        return AuctionAction(orders)

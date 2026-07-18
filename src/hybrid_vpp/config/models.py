@@ -404,10 +404,17 @@ class EpisodeConfig(BaseModel):
     infeasibility_penalty_eur_per_mwh: float = Field(default=0.0, ge=0)
     #: action formulation (see hybrid_vpp.envs.actions for schema docs)
     action_mode: Literal[
-        "direct", "target_position", "hourly_target", "residual_hourly", "strategic"
+        "direct",
+        "target_position",
+        "hourly_target",
+        "residual_hourly",
+        "strategic",
+        "strategic_residual",
     ] = "direct"
-    #: max market correction per hour anchor in residual mode, MW
+    #: max market correction per hour anchor in residual modes, MW
     residual_scale_mw: float = Field(default=25.0, gt=0)
+    #: max zero-mean intra-hour (quarter-hour) tilt in strategic_residual mode, MW
+    intra_hour_residual_scale_mw: float = Field(default=10.0, gt=0)
     #: upper bound of the strategic correction gains. 1.0 places the
     #: rule-based optimum at the action-space corner (unreachable for
     #: squashed-Gaussian policies); >1 moves it into the interior.

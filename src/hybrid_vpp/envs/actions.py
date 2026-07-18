@@ -30,6 +30,17 @@ simulator, accounting, and market rules are identical across variants.
     policy adds up to ±``residual_scale_mw`` per hour anchor (markets) and
     a bounded correction to the baseline dispatch. Zero action reproduces
     the baseline exactly.
+
+``strategic_residual`` (act-v6)
+    ``strategic`` backbone plus a low-rank quarter-hour market residual:
+    the 7 strategic dims (act-v5 semantics) followed by one **anchor**
+    (±``residual_scale_mw``, uniform over the hour) and one zero-mean
+    **tilt** (±``intra_hour_residual_scale_mw``, reshapes the hour's four
+    quarter-hours without changing its net volume) per hour anchor —
+    57 dims for one-day episodes. Residuals correct market orders only;
+    dispatch stays strategic. Observations are quarter-hourly in this mode
+    (``obs_slots`` = 100/day). Zero residuals ≡ ``strategic``; mid-range
+    strategic values with zero residuals ≡ rule-based (test-pinned).
 """
 
 from __future__ import annotations
@@ -61,6 +72,7 @@ ACTION_SCHEMA_VERSIONS = {
     "hourly_target": "act-v3-hourly-target",
     "residual_hourly": "act-v4-residual-hourly",
     "strategic": "act-v5-strategic",
+    "strategic_residual": "act-v6-strategic-residual",
 }
 
 
@@ -81,6 +93,7 @@ class ActionLayout:
 
     @property
     def hourly(self) -> bool:
+        """Hour-resolution observation/slot grid (strategic_residual is QH)."""
         return self.mode in ("hourly_target", "residual_hourly", "strategic")
 
     @property
@@ -88,8 +101,12 @@ class ActionLayout:
         return self.mode == "strategic"
 
     @property
+    def is_strategic_residual(self) -> bool:
+        return self.mode == "strategic_residual"
+
+    @property
     def n_slots(self) -> int:
-        if self.is_strategic:
+        if self.is_strategic or self.is_strategic_residual:
             return 0
         per_day = MAX_HOURS_PER_DAY if self.hourly else MAX_SLOTS_PER_DAY
         return per_day * self.episode_days
@@ -106,11 +123,13 @@ class ActionLayout:
 
         if self.is_strategic:
             return N_STRATEGIC_DIMS
+        if self.is_strategic_residual:
+            return N_STRATEGIC_DIMS + 2 * MAX_HOURS_PER_DAY * self.episode_days
         return self.n_slots + N_DISPATCH_ENTRIES
 
     @property
     def needs_baseline(self) -> bool:
-        return self.mode in ("residual_hourly", "strategic")
+        return self.mode in ("residual_hourly", "strategic", "strategic_residual")
 
     def slot_of(self, window_start_utc: pd.Timestamp, product: DeliveryProduct) -> int:
         delta = product.start_utc - window_start_utc
@@ -121,11 +140,19 @@ class ActionLayout:
 
     def mask(self, window_start_utc: pd.Timestamp, event: MarketEvent) -> np.ndarray:
         """1.0 for action entries that have an effect at this event."""
-        if self.is_strategic:
-            from hybrid_vpp.envs.strategic import STRATEGIC_MASKS
+        if self.is_strategic or self.is_strategic_residual:
+            from hybrid_vpp.envs.strategic import N_STRATEGIC_DIMS, STRATEGIC_MASKS
 
             mask = np.zeros(self.size, dtype=np.float32)
             mask[list(STRATEGIC_MASKS[event.type])] = 1.0
+            if self.is_strategic_residual and event.type != EventType.PHYSICAL_DISPATCH:
+                n = MAX_HOURS_PER_DAY * self.episode_days
+                for p in event.products:
+                    for qh in p.quarter_hours():
+                        hour = int((qh.start_utc - window_start_utc) / pd.Timedelta(hours=1))
+                        if 0 <= hour < n:
+                            mask[N_STRATEGIC_DIMS + hour] = 1.0
+                            mask[N_STRATEGIC_DIMS + n + hour] = 1.0
             return mask
         mask = np.zeros(self.size, dtype=np.float32)
         if event.type == EventType.PHYSICAL_DISPATCH:
@@ -169,6 +196,11 @@ class ActionLayout:
             if self.strategic_translator is None:
                 raise ValueError("strategic mode requires a StrategicTranslator")
             return self.strategic_translator.translate(raw, event, sim)
+
+        if self.is_strategic_residual:
+            if self.strategic_translator is None:
+                raise ValueError("strategic_residual mode requires a StrategicResidualTranslator")
+            return self.strategic_translator.translate(raw, window_start_utc, event, sim)
 
         if self.mode == "residual_hourly":
             if baseline is None:

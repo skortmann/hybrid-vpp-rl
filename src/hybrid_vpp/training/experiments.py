@@ -318,6 +318,30 @@ SPECS: list[ExperimentSpec] = [
         n_envs=4,
         notes="Tier-1: CrossQ on hourly target-position actions",
     ),
+    # ---- V8: act-v6 strategic_residual — quarter-hour market freedom on the
+    # V6-hybrid winner (same recipe: fixed dispatch, interior gains, env-v2)
+    *[
+        ExperimentSpec(
+            f"V8-qhres-sac-seed{seed}",
+            "screening",
+            algorithm="sac",
+            action_mode="strategic_residual",
+            total_timesteps=300_000,
+            seed=seed,
+            n_envs=4,
+            overrides={
+                "episode.strategic_fixed_dispatch": True,
+                "episode.strategic_gain_max": 1.25,
+                "markets.imbalance.deviation_penalty_eur_per_mwh": 25.0,
+            },
+            algo_kwargs={"ent_coef": 0.005, "gradient_steps": 2, "learning_starts": 10_000},
+            notes=(
+                "V8: act-v6 strategic residual (QH anchors+tilts on market orders) "
+                "on the V6-hybrid recipe; compare against V6-hybrid-sac-strategic"
+            ),
+        )
+        for seed in (0, 1, 2)
+    ],
 ]
 
 RUN_ONLY: list[str] | None = None  # e.g. ["L1-ppo-hourly-target"]

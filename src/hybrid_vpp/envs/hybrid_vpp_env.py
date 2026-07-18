@@ -91,6 +91,17 @@ class HybridVppEnv(gym.Env):
             self.layout.strategic_translator = StrategicTranslator(
                 cfg, self._baseline_controller, price_fc
             )
+        elif self.layout.is_strategic_residual:
+            from hybrid_vpp.envs.strategic import (
+                StrategicResidualTranslator,
+                StrategicTranslator,
+            )
+
+            self.layout.strategic_translator = StrategicResidualTranslator(
+                cfg,
+                StrategicTranslator(cfg, self._baseline_controller, price_fc),
+                cfg.episode.days,
+            )
 
         self.action_space = gym.spaces.Box(-1.0, 1.0, (self.layout.size,), np.float32)
         self.observation_space = gym.spaces.Box(
@@ -157,9 +168,11 @@ class HybridVppEnv(gym.Env):
         if self._event is None:
             raise RuntimeError("call reset() first")
         event = self._event
+        # only residual_hourly consumes an env-computed baseline; the strategic
+        # translators call the rule-based controller themselves
         baseline = (
             self._baseline_controller.act(event, self.sim)
-            if self._baseline_controller is not None and not self.layout.is_strategic
+            if self.layout.mode == "residual_hourly"
             else None
         )
         logical = self.layout.translate(
@@ -193,7 +206,20 @@ class HybridVppEnv(gym.Env):
             else np.zeros(self.obs_builder.size, dtype=np.float32)
         )
         info = self._info(next_event) if next_event is not None else self._final_info()
+        info.update(self._execution_info(result.execution_reports))
         return obs, reward * REWARD_SCALE, terminated, False, info
+
+    @staticmethod
+    def _execution_info(reports: list) -> dict[str, Any]:
+        """Order-level execution outcome of this step (caps are otherwise invisible)."""
+        capped = [r for r in reports if r.reason == "volume capped"]
+        rejected = [r for r in reports if r.filled_mw == 0.0 and r.reason is not None]
+        return {
+            "orders_submitted": len(reports),
+            "orders_capped": len(capped),
+            "orders_rejected": len(rejected),
+            "capped_mw": float(sum(abs(r.requested_mw - r.filled_mw) for r in capped)),
+        }
 
     def _terminal_soc_value(self) -> float:
         """Value residual battery energy vs. episode start at the mean DA price."""
