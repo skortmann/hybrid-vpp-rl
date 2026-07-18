@@ -2,9 +2,9 @@
 
 Compiled 2026-07-18 from the repository's validated artifacts: the two final
 reports (`final_rl_results.*`, `final_robust_rl_results.*`), the phase reports
-under `reports/`, the research registry (`runs/research_state.sqlite`: 49
-completed, 5 promoted, 2 pruned; both loops in named terminal states),
-`experiments/registry.jsonl` (48 records), the research logs, and the raw
+under `reports/`, the research-time run registry (49
+completed, 5 promoted, 2 pruned; both loops in named terminal states; a
+local working database, not distributed), the research logs, and the raw
 evaluation caches under `artifacts/`. Verified state: branch
 `research/robust-rl-selection` at `f2d467c`, tag `rl-frontier-v1` at `17b002e`
 freezing the first phase, 189 tests collected and passing (exit 0), strict

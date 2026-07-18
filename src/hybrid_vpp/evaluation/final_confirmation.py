@@ -7,7 +7,7 @@ dispatch — once over the 98-day test split, and compares it against the
 with a moving-block bootstrap. The test split was already examined by
 the previous research phase; this is a reused-test confirmation, not an
 untouched-test claim. The protocol was pre-registered in
-``docs/robust_rl_research_log.md`` before any test contact.
+the research log (repository tag ``robust-rl-final``) before any test contact.
 
 Run as ``uv run python -m hybrid_vpp.evaluation.final_confirmation``.
 """

@@ -129,6 +129,7 @@ conditioning: see above.
   unaddressed — 1 validation day; first candidate for a phase with
   spring/summer validation data.
 
-Full provenance: `runs/research_state.sqlite` (7 R-phase records +
-terminal event), `artifacts/robust_selection/`, `artifacts/failure_days/`,
-`docs/robust_rl_research_log.md`, reports under `reports/`.
+Full provenance: `artifacts/robust_selection/`, `artifacts/failure_days/`,
+the research log (preserved at tag `robust-rl-final`), and the reports
+under `reports/`; the research-time run registry was a local working
+database and is not distributed.

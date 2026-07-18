@@ -70,15 +70,18 @@ class EpisodeMetricsCallback:
 
 
 class HeartbeatCallback:
-    """Writes a machine-readable heartbeat file every ``interval_s`` seconds."""
+    """Writes a small JSON heartbeat file every ``interval_s`` seconds.
+
+    Lets external process monitors observe training progress without any
+    coupling to a specific orchestration tool.
+    """
 
     def __new__(cls, path: Path, experiment_id: str, interval_s: float = 30.0):
         import os
         import time as _time
+        from datetime import UTC, datetime
 
         from stable_baselines3.common.callbacks import BaseCallback
-
-        from hybrid_vpp.training.research_state import Heartbeat, utcnow
 
         class _Callback(BaseCallback):
             def __init__(self) -> None:
@@ -89,13 +92,16 @@ class HeartbeatCallback:
                 now = _time.time()
                 if now - self._last >= interval_s:
                     self._last = now
-                    Heartbeat(
-                        experiment_id=experiment_id,
-                        timestamp=utcnow(),
-                        pid=os.getpid(),
-                        environment_steps=int(self.num_timesteps),
-                        phase="training",
-                    ).write(path)
+                    payload = {
+                        "experiment_id": experiment_id,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "pid": os.getpid(),
+                        "environment_steps": int(self.num_timesteps),
+                        "phase": "training",
+                    }
+                    tmp = path.with_suffix(".tmp")
+                    tmp.write_text(json.dumps(payload))
+                    tmp.replace(path)
                 return True
 
         return _Callback()

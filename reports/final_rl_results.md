@@ -83,6 +83,6 @@ started from the dataset's best policy and lost it) and TD-MPC2/DreamerV3
 4. Regime-conditioned policies (season/volatility features) for the
    February–May distribution shift observed here.
 
-Full provenance: `runs/research_state.sqlite` (46 experiments, every
-state transition and decision), `experiments/registry.jsonl`,
-`docs/rl_research_log.md`, W&B project `hybrid-vpp-rl`.
+Full provenance: the committed result artifacts under `artifacts/`,
+`experiments/baseline_v1.json`, and the study report; the research-time
+run registry was a local working database and is not distributed.
