@@ -95,6 +95,11 @@ class OptimizationController:
     idc_threshold_mw: float = 0.5
     #: PyOptInterface backend: "gurobi" (default, falls back) or "highs"
     solver: str = "gurobi"
+    #: EUR/MWh penalty on schedule changes vs the previous own plan
+    #: (benchmark variant; 0 = classic profit-maximizing MILP)
+    turnover_penalty_eur_per_mwh: float = 0.0
+    #: multiplicative derating of renewable forecasts (robust variant; 1 = trust)
+    renewable_derate: float = 1.0
     _plan_export: dict[pd.Timestamp, float] = field(default_factory=dict)
     _plan_bess: dict[pd.Timestamp, float] = field(default_factory=dict)
 
@@ -112,6 +117,7 @@ class OptimizationController:
         prices: np.ndarray,
         soc0_mwh: float,
         terminal_mwh: float | None,
+        anchor_export_mw: np.ndarray | None = None,
     ) -> ScheduleSolution:
         """Build and solve the schedule MILP (backend per ``self.solver``)."""
         bat = self.cfg.site.battery
@@ -156,6 +162,16 @@ class OptimizationController:
             price_h = h * float(prices[t])
             objective += price_h * (dis[t] - ch[t] - cw[t] - cpv[t])
             objective -= (c_deg * h) * (ch[t] + dis[t])
+        if self.turnover_penalty_eur_per_mwh > 0 and anchor_export_mw is not None:
+            c_turn = self.turnover_penalty_eur_per_mwh * h
+            for t in range(n):
+                if np.isnan(anchor_export_mw[t]):
+                    continue  # no previous plan for this quarter-hour
+                slack = m.add_variable(lb=0.0)
+                g = dis[t] - ch[t] - cw[t] - cpv[t] + float(renew[t])
+                m.add_linear_constraint(slack - g, poi.Geq, -float(anchor_export_mw[t]))
+                m.add_linear_constraint(slack + g, poi.Geq, float(anchor_export_mw[t]))
+                objective -= c_turn * slack
         m.set_objective(objective, poi.ObjectiveSense.Maximize)
         m.optimize()
 
@@ -186,10 +202,13 @@ class OptimizationController:
         fc = self.renewable_forecaster.forecast(event.time_utc, qh_times)
         price_qh = self.price_forecaster.forecast(market, event.time_utc, qh_times)
         bat = self.cfg.site.battery
+        anchor = None
+        if self.turnover_penalty_eur_per_mwh > 0 and self._plan_export:
+            anchor = np.array([self._plan_export.get(t, np.nan) for t in qh_times])
         solution = self.solve_schedule(
             qh_times,
-            fc["wind_mw"].to_numpy(float),
-            fc["pv_mw"].to_numpy(float),
+            self.renewable_derate * fc["wind_mw"].to_numpy(float),
+            self.renewable_derate * fc["pv_mw"].to_numpy(float),
             price_qh.to_numpy(float),
             soc0_mwh=sim.battery.energy_mwh,
             terminal_mwh=(
@@ -197,6 +216,7 @@ class OptimizationController:
                 if bat.soc_terminal_target is not None
                 else None
             ),
+            anchor_export_mw=anchor,
         )
         self._plan_export.update(solution.export_mw.to_dict())
         self._plan_bess.update(solution.bess_mw.to_dict())
@@ -234,7 +254,7 @@ class OptimizationController:
                 return IdcAction()
             times = pd.DatetimeIndex([p.start_utc for p in near])
             fc = self.renewable_forecaster.forecast(event.time_utc, times)
-            renewable = fc["wind_mw"] + fc["pv_mw"]
+            renewable = self.renewable_derate * (fc["wind_mw"] + fc["pv_mw"])
             orders = {}
             for p in near:
                 # keep the planned battery contribution, refresh the renewable part

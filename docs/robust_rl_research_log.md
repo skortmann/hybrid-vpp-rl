@@ -93,3 +93,53 @@ validation days:
   disagreement-independent bounded-residual Gate C.
 * Report: `reports/ensemble_analysis.md`; `ensemble_results.json`,
   `disagreement_analysis.json`, `ensemble_weights.json`.
+
+## 2026-07-18 — Phase 3 complete: bounded residual wins (RQ3: yes)
+
+Seven gate variants around the mean-ensemble proposal, LOBO-calibrated
+thresholds, plus two controls. Block bootstrap vs rule-based (92 days):
+
+* ensemble (ungated): mean +124, CI [−178, +457], **P(outperform) 81%**
+* gate_a_q80 (disagreement fallback): +105, CI [−47, +283], **93%**
+* gate_c_r0.1 (bounded residual): +27, CI [−12, +71], **91%**,
+  downside exposure 77 EUR/day (4x better than ungated), max daily loss
+  vs rule-based 1,430 (vs 4,844), P(day beats rule-based) 0.57.
+* All composites beat the info-MILP on the median day (info gap
+  −1.1% … −1.6%).
+* **Random-fallback control**: rule fallback on a random 20% of events
+  recovers most of Gate A's tail benefit (CVaR −1,441 vs −1,032) —
+  the safety value is bounded dampening toward the rule action, not the
+  disagreement signal itself (consistent with H3's refutation).
+* **Locked candidate** (pre-registered risk-adjusted rule over all
+  composites, selected before any test contact): **`gate_c_r0.1`** —
+  mean ensemble of the five eval-best checkpoints, per-dimension
+  residual bound 0.1 around the rule-equivalent action, deterministic
+  rule-based dispatch. Runner-up: gate_a_q80.
+* Artifact: `safety_gate_results.json`.
+
+## 2026-07-18 — Phase 4 complete: mechanisms identified, regime features pruned (RQ4 answered, RQ5 pruned)
+
+* Failure days over-represent negative DAA prices (lift 4.6–5.8, but 1%
+  base rate), low renewables (1.8–2.3), price volatility (1.3–2.0).
+  reBAP volatility is largely resolved by the hybrid architecture;
+  forecast error is not enriched — the residual gap is market-side.
+* Gate E (negative-price regime fallback) triggers on **1 of 92**
+  validation days: the strongest mechanism is unvalidatable in a winter
+  validation window. Regime conditioning formally pruned; documented as
+  the first candidate for a future phase with spring validation data.
+* Reports: `failure_day_analysis.md`, `regime_analysis.md`;
+  `artifacts/failure_days/`.
+
+## 2026-07-18 — Phase 5 (retraining) formally pruned
+
+ENSEMBLE_SUCCESS conditions are already met on validation by an
+existing-policy construction: no new training is required. Specific
+pruning reasons: (1) bounded-residual SAC duplicates what the post-hoc
+Gate C already achieves architecturally, with headroom vs rule-based of
+order 100 EUR/day against a multi-hour compute and code-skew risk;
+(2) BC-initialized fine-tuning washed out twice in the previous phase;
+(3) regime-aware retraining fails the Phase-4 evidence gate (n=1
+regime days); (4) regret/CVaR-shaped rewards target a tail the gate has
+already capped (max daily loss 1,430 EUR vs rule-based). Retraining
+levers remain documented for a future phase with broader validation
+coverage.
