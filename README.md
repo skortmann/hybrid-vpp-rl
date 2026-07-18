@@ -222,7 +222,8 @@ docs/           MkDocs documentation
 ## Main research result
 
 Across two research phases (49 registered experiments; see
-`docs/results.md` and `reports/final_study_report.md`), the promoted
+`docs/results.md` and, preserved at tag `v0.2.0`,
+`reports/final_study_report.md`), the promoted
 ensemble deployment controller reaches **median-level parity with the
 information-equivalent MILP** (median info-gap +0.58% on the 98-day
 reused test split) and tracks the rule-based reference within

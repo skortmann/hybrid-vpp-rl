@@ -2,7 +2,8 @@
 
 How the study was run and what it established. Headline numbers are in
 [results](results.md); the full narrative including every negative result
-is in `reports/final_study_report.md`. The internal research diaries are
+is in `reports/final_study_report.md` (preserved at tag `v0.2.0`). The
+internal research diaries are
 preserved in history at tags `rl-frontier-v1` and `robust-rl-final`.
 
 ## Evaluation discipline

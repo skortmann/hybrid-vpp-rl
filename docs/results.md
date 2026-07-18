@@ -12,7 +12,8 @@ uv run python -m hybrid_vpp.evaluation.export_results
 ```
 
 The complete narrative, including all negative results, is in
-[`reports/final_study_report.md`](https://github.com/skortmann/hybrid-vpp-rl/blob/main/reports/final_study_report.md).
+[`reports/final_study_report.md`](https://github.com/skortmann/hybrid-vpp-rl/blob/v0.2.0/reports/final_study_report.md)
+(preserved at tag `v0.2.0`).
 
 ## Data splits
 
@@ -63,7 +64,8 @@ identified in advance.
 | Do-nothing | 52,726 | 55,315 | — |
 
 Full per-day series for all 35 checkpoints, ensembles, gates, and
-baselines are in `artifacts/robust_selection/per_day_val.csv`. On
+baselines are in `artifacts/robust_selection/per_day_val.csv` at tag
+`v0.2.0`. On
 validation the promoted controller's
 paired mean versus rule-based is +27 EUR/day (CI95 [−12, +71]); every
 ensemble variant beat every individual member on mean revenue, and the
