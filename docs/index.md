@@ -15,7 +15,7 @@ trading.
 | **Markets** | DAA (12:00 D−1; hourly → 15-min products at the SDAC switch), IDA1 (15:00 D−1), IDA2 (22:00 D−1), IDA3 (10:00 D), IDC (rolling decisions, configurable gate-closure lead) |
 | **Settlement** | Historical 15-min reBAP (single price) or stylized alternatives |
 | **Feasibility** | Congestion-resolving projection of every dispatch onto the feasible set (exact weighted QP or priority heuristics); every correction recorded |
-| **RL** | Gymnasium env, event-driven decisions, fixed-size masked actions, leakage-guarded observations; SB3 PPO baseline, W&B tracking |
+| **RL** | Gymnasium env, event-driven decisions, schema-versioned action spaces (direct / target / hourly / residual / strategic), leakage-guarded observations; SAC/PPO/TQC via a common adapter |
 | **Benchmarks** | Do-nothing, rule-based, rolling-horizon MILP (PyOptInterface: Gurobi/HiGHS), perfect-foresight upper bound |
 
 ## Architecture
@@ -30,7 +30,7 @@ flowchart TB
         STORE --> FC["forecast providers<br/>(issue-time indexed)"]
         FC --> OBS["observation builder"]
         OBS --> POLICY["controller<br/>RL · rule-based · MILP"]
-        POLICY --> LAYOUT["action layout<br/>(direct / target / hourly / residual)"]
+        POLICY --> LAYOUT["action layout<br/>(direct / target / hourly / residual / strategic)"]
     end
     subgraph sim["validated simulator"]
         LAYOUT --> CAL["market calendar<br/>gates & eligibility"]

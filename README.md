@@ -56,8 +56,13 @@ environment for reinforcement-learning research on top of it.
 * Oversizing analytics: technical vs. economic curtailment, congestion
   charging, grid-utilization and duration-curve metrics.
 * Baselines: do-nothing, rule-based, rolling-horizon MILP (PyOptInterface;
-  Gurobi or HiGHS), perfect-foresight upper bound.
-* SB3 PPO training with validation-based model selection and W&B tracking.
+  HiGHS or Gurobi), perfect-foresight upper bound.
+* RL training (SAC/PPO/TQC via a common adapter) with validation-based
+  model selection; the published recipe is `configs/train_sac_hybrid.yaml`.
+* **Ensemble deployment controller**: the study's promoted design — mean
+  strategic action of five released SAC policies, bounded residual around
+  the rule-equivalent action, deterministic rule-based dispatch, full
+  decision logging (`docs/controllers.md`).
 * **Synthetic market database**: a deterministic, clearly-labelled drop-in
   replacement for the private market database — the full test suite,
   examples, and short trainings run offline
@@ -82,7 +87,10 @@ Requires Python ≥ 3.12 and [uv](https://github.com/astral-sh/uv).
 ```bash
 git clone https://github.com/skortmann/hybrid-vpp-rl
 cd hybrid-vpp-rl
-uv sync --group dev
+uv sync                  # minimal: synthetic data + simulation + evaluation
+uv sync --extra rl       # + RL training and released-checkpoint loading
+uv sync --extra optimization   # + MILP benchmark (HiGHS)
+uv sync --group dev      # everything (tests, docs, benchmark, RL)
 ```
 
 ## Quick start (no private data required)
@@ -97,9 +105,15 @@ uv run pytest
 # 3. one scripted episode with full accounting output
 uv run python -m hybrid_vpp.sim.demo_episode        # set CONFIG_PATH to configs/synthetic_market.yaml
 
-# 4. baseline comparison and a short RL training
+# 4. one-file quick start (synthetic day, rule-based controller)
+uv run python examples/quickstart.py
+
+# 5. baseline comparison and RL training
 uv run python -m hybrid_vpp.evaluation.run_baselines
-uv run python -m hybrid_vpp.training.train          # configs/synthetic_market.yaml = short demo run
+uv run python -m hybrid_vpp.training.train          # promoted recipe: configs/train_sac_hybrid.yaml
+
+# 6. the promoted deployment controller (checkpoints from the GitHub release)
+uv run python examples/run_deployment_controller.py
 ```
 
 Runnable modules are configured by editing the marked `CONFIG` block of
@@ -152,9 +166,9 @@ runs.
 ## Training, evaluation, tests
 
 ```bash
-uv run python -m hybrid_vpp.training.train       # PPO; seeds, checkpoints, val-based selection
+uv run python -m hybrid_vpp.training.train       # seeds, checkpoints, validation-based selection
 uv run python -m hybrid_vpp.training.evaluate    # RL vs. all baselines on val/test days
-uv run pytest                                    # offline: 107 tests; +22 with the real DB
+uv run pytest                                    # offline: 149 tests pass, real-DB tests skip
 ```
 
 ### Example output (validation split, real data, 92 days)
@@ -204,6 +218,21 @@ docs/           MkDocs documentation
   schema version, config hash, and creation info.
 * Evaluation writes per-day CSVs plus a metadata JSON naming the exact
   days, model checkpoint, and data source.
+
+## Main research result
+
+Across two research phases (49 registered experiments; see
+`docs/results.md` and `reports/final_study_report.md`), the promoted
+ensemble deployment controller reaches **median-level parity with the
+information-equivalent MILP** (median info-gap +0.58% on the 98-day
+reused test split) and tracks the rule-based reference within
+**−83 ± 60 EUR/day of mean revenue** with a hard cap on daily losses
+(worst observed day: −847 EUR vs rule-based). It does **not** demonstrate
+a mean-revenue advantage over well-tuned rule-based control; its
+contribution is reliability — seed-selection risk is eliminated by
+construction and the paired confidence interval narrows 46-fold versus
+per-seed deployment. Details and boundaries: `docs/results.md`,
+`docs/limitations.md`.
 
 ## Known limitations
 
