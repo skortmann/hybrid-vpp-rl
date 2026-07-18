@@ -868,25 +868,37 @@ wheels = [
 
 [[package]]
 name = "hybrid-vpp-rl"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "gurobipy" },
     { name = "gymnasium" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pydantic" },
-    { name = "pyoptinterface", extra = ["highs"] },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "sb3-contrib" },
+]
+
+[package.optional-dependencies]
+gurobi = [
+    { name = "gurobipy" },
+]
+jax = [
     { name = "sbx-rl" },
+]
+optimization = [
+    { name = "pyoptinterface", extra = ["highs"] },
+]
+rl = [
+    { name = "sb3-contrib" },
     { name = "stable-baselines3" },
     { name = "tensorboard" },
     { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+]
+tracking = [
     { name = "wandb" },
     { name = "weave" },
 ]
@@ -896,40 +908,48 @@ dev = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "pymdown-extensions" },
+    { name = "pyoptinterface", extra = ["highs"] },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "stable-baselines3" },
     { name = "tabulate" },
+    { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "gurobipy", specifier = ">=13.0.2" },
+    { name = "gurobipy", marker = "extra == 'gurobi'", specifier = ">=13.0.2" },
     { name = "gymnasium", specifier = ">=1.0" },
     { name = "matplotlib", specifier = ">=3.9" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=16.0" },
     { name = "pydantic", specifier = ">=2.7" },
-    { name = "pyoptinterface", extras = ["highs"], specifier = ">=0.6.1" },
+    { name = "pyoptinterface", extras = ["highs"], marker = "extra == 'optimization'", specifier = ">=0.6.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "requests", specifier = ">=2.32" },
-    { name = "sb3-contrib", specifier = ">=2.9.0" },
-    { name = "sbx-rl", specifier = ">=0.27.0" },
-    { name = "stable-baselines3", specifier = ">=2.4" },
-    { name = "tensorboard", specifier = ">=2.16" },
-    { name = "torch", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
-    { name = "wandb", specifier = ">=0.28.0" },
-    { name = "weave", specifier = ">=0.53.1" },
+    { name = "sb3-contrib", marker = "extra == 'rl'", specifier = ">=2.9.0" },
+    { name = "sbx-rl", marker = "extra == 'jax'", specifier = ">=0.27.0" },
+    { name = "stable-baselines3", marker = "extra == 'rl'", specifier = ">=2.4" },
+    { name = "tensorboard", marker = "extra == 'rl'", specifier = ">=2.16" },
+    { name = "torch", marker = "extra == 'rl'", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "wandb", marker = "extra == 'tracking'", specifier = ">=0.28.0" },
+    { name = "weave", marker = "extra == 'tracking'", specifier = ">=0.53.1" },
 ]
+provides-extras = ["rl", "jax", "tracking", "optimization", "gurobi"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mkdocs-material", specifier = ">=9.7.6" },
     { name = "pymdown-extensions", specifier = ">=11.0.1" },
+    { name = "pyoptinterface", extras = ["highs"], specifier = ">=0.6.1" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "ruff", specifier = ">=0.5" },
+    { name = "stable-baselines3", specifier = ">=2.4" },
     { name = "tabulate", specifier = ">=0.10.0" },
+    { name = "torch", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
 [[package]]
