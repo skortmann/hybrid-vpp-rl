@@ -11,10 +11,15 @@ window.MathJax = {
   }
 };
 
-/* re-typeset after every page change (Material instant navigation) */
+/* Re-typeset after every page swap (Material instant navigation).
+   Guard against the first emission, which fires before the MathJax
+   library has loaded — an exception here would tear down the RxJS
+   subscription and silently disable math on all later pages. */
 document$.subscribe(() => {
-  MathJax.startup.output.clearCache();
-  MathJax.typesetClear();
-  MathJax.typesetReset();
-  MathJax.typesetPromise();
+  if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+    MathJax.startup.output.clearCache();
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typesetPromise();
+  }
 });
