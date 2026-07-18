@@ -21,7 +21,6 @@ import csv
 import json
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 # --------------------------------------------------------------------- CONFIG
@@ -127,10 +126,10 @@ def build_rows() -> list[dict]:
     )
 
     conf = json.loads(CONFIRMATION.read_text())
-    promoted = pd.Series(
-        {pd.Timestamp(d): v for d, v in conf["per_day"].items()}
-    ).sort_index()
-    rows.append(_row("ensemble_deployment_gate_c_r0.1", "test_reused", t_period, promoted, t_ref, t_milp))
+    promoted = pd.Series({pd.Timestamp(d): v for d, v in conf["per_day"].items()}).sort_index()
+    rows.append(
+        _row("ensemble_deployment_gate_c_r0.1", "test_reused", t_period, promoted, t_ref, t_milp)
+    )
     return rows
 
 
