@@ -1,0 +1,937 @@
+{
+  "ensemble_mean": {
+    "sets": {
+      "worst_regret": [
+        "2025-12-08",
+        "2025-11-02",
+        "2025-12-09",
+        "2025-11-25",
+        "2025-11-05"
+      ],
+      "worst_revenue_decile": [
+        "2026-01-01",
+        "2025-11-08",
+        "2025-11-09",
+        "2025-12-05",
+        "2025-11-10",
+        "2025-12-20",
+        "2025-12-03",
+        "2025-11-07",
+        "2025-12-12",
+        "2026-01-08"
+      ],
+      "largest_deviation": [
+        "2026-01-12",
+        "2025-11-04",
+        "2026-01-25",
+        "2025-12-16",
+        "2026-01-26"
+      ]
+    },
+    "days": {
+      "2025-11-02": {
+        "regret_vs_rule_based": -2281.4637453445976,
+        "revenue": 42373.76801897095,
+        "mechanisms": [],
+        "daa_mean": 85.9121875,
+        "daa_std": 22.02197014740455,
+        "negative_price_hours": 0.0,
+        "rebap_std": 36.076539256450616,
+        "rebap_abs_max": 181.64,
+        "renewable_mwh": 499.0216243377582,
+        "forecast_mae_mw": 1.5884380040212591,
+        "forecast_maxerr_mw": 3.9933233313646888
+      },
+      "2025-11-04": {
+        "regret_vs_rule_based": 1354.4052713076235,
+        "revenue": 44926.35294482374,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 73.55343749999999,
+        "daa_std": 42.19023933891891,
+        "negative_price_hours": 0.0,
+        "rebap_std": 68.15926673076846,
+        "rebap_abs_max": 527.18,
+        "renewable_mwh": 774.8027047886948,
+        "forecast_mae_mw": 2.808503661735493,
+        "forecast_maxerr_mw": 5.8554896411772965
+      },
+      "2025-11-05": {
+        "regret_vs_rule_based": -1525.4600494871338,
+        "revenue": 59057.102036067714,
+        "mechanisms": [],
+        "daa_mean": 93.42760416666665,
+        "daa_std": 26.05380337497098,
+        "negative_price_hours": 0.0,
+        "rebap_std": 34.01234732332816,
+        "rebap_abs_max": 146.56,
+        "renewable_mwh": 660.4251922133792,
+        "forecast_mae_mw": 1.8693692588861222,
+        "forecast_maxerr_mw": 3.7538949097930114
+      },
+      "2025-11-07": {
+        "regret_vs_rule_based": 209.2811008436729,
+        "revenue": 29783.631655044937,
+        "mechanisms": [
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 110.80458333333333,
+        "daa_std": 28.437429117738276,
+        "negative_price_hours": 0.0,
+        "rebap_std": 45.19796573696634,
+        "rebap_abs_max": 316.74,
+        "renewable_mwh": 237.0888764880353,
+        "forecast_mae_mw": 2.389618815326324,
+        "forecast_maxerr_mw": 4.975901669497482
+      },
+      "2025-11-08": {
+        "regret_vs_rule_based": -121.90278642462727,
+        "revenue": 11419.934240089882,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 106.46479166666666,
+        "daa_std": 15.115634288927382,
+        "negative_price_hours": 0.0,
+        "rebap_std": 32.065370290457416,
+        "rebap_abs_max": 182.44,
+        "renewable_mwh": 91.429459038363,
+        "forecast_mae_mw": 1.0580106099560787,
+        "forecast_maxerr_mw": 2.616923833434443
+      },
+      "2025-11-09": {
+        "regret_vs_rule_based": 136.4463219570298,
+        "revenue": 12399.727848802953,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 99.0046875,
+        "daa_std": 11.089404661012107,
+        "negative_price_hours": 0.0,
+        "rebap_std": 28.84158075010679,
+        "rebap_abs_max": 175.26,
+        "renewable_mwh": 101.32542478945271,
+        "forecast_mae_mw": 0.8620958156737496,
+        "forecast_maxerr_mw": 1.8934633589778933
+      },
+      "2025-11-10": {
+        "regret_vs_rule_based": 539.8783289056046,
+        "revenue": 25384.55551636674,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 109.88843750000001,
+        "daa_std": 24.671495079009578,
+        "negative_price_hours": 0.0,
+        "rebap_std": 37.8902783535117,
+        "rebap_abs_max": 295.03,
+        "renewable_mwh": 241.52144747636493,
+        "forecast_mae_mw": 0.9949495754590171,
+        "forecast_maxerr_mw": 3.1142635485699977
+      },
+      "2025-11-25": {
+        "regret_vs_rule_based": -1883.9995023685406,
+        "revenue": 38724.29585860626,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 220.5169791666667,
+        "daa_std": 106.86272762013999,
+        "negative_price_hours": 0.0,
+        "rebap_std": 51.68990631983901,
+        "rebap_abs_max": 279.8,
+        "renewable_mwh": 122.87272430501245,
+        "forecast_mae_mw": 0.6709850115968351,
+        "forecast_maxerr_mw": 1.9218777933835218
+      },
+      "2025-12-03": {
+        "regret_vs_rule_based": 338.00996020031016,
+        "revenue": 29609.462313563457,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 164.806875,
+        "daa_std": 65.01597252971284,
+        "negative_price_hours": 0.0,
+        "rebap_std": 207.6860072354151,
+        "rebap_abs_max": 1300.58,
+        "renewable_mwh": 156.54830004768232,
+        "forecast_mae_mw": 0.5764681023439008,
+        "forecast_maxerr_mw": 2.0276492393726517
+      },
+      "2025-12-05": {
+        "regret_vs_rule_based": -513.7691723908574,
+        "revenue": 21388.712339159392,
+        "mechanisms": [
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 133.28635416666665,
+        "daa_std": 35.630495983069984,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.96937157732238,
+        "rebap_abs_max": 378.64,
+        "renewable_mwh": 145.4092438889431,
+        "forecast_mae_mw": 0.7998659990271255,
+        "forecast_maxerr_mw": 2.9094713463408404
+      },
+      "2025-12-08": {
+        "regret_vs_rule_based": -4844.016619896705,
+        "revenue": 67506.36708147045,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility"
+        ],
+        "daa_mean": 70.63520833333332,
+        "daa_std": 34.685063577471844,
+        "negative_price_hours": 0.0,
+        "rebap_std": 59.250370229207654,
+        "rebap_abs_max": 200.2,
+        "renewable_mwh": 1044.483374614866,
+        "forecast_mae_mw": 1.6577274058501077,
+        "forecast_maxerr_mw": 4.3480090364516855
+      },
+      "2025-12-09": {
+        "regret_vs_rule_based": -2177.7651839683895,
+        "revenue": 61385.52731763957,
+        "mechanisms": [
+          "forecast_error"
+        ],
+        "daa_mean": 91.57416666666667,
+        "daa_std": 18.546071443090643,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.0114640273607,
+        "rebap_abs_max": 226.46,
+        "renewable_mwh": 690.5042256200909,
+        "forecast_mae_mw": 2.543709393980887,
+        "forecast_maxerr_mw": 5.712466892198179
+      },
+      "2025-12-12": {
+        "regret_vs_rule_based": -825.9263224907336,
+        "revenue": 30299.112947151316,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 113.4434375,
+        "daa_std": 19.742910532862012,
+        "negative_price_hours": 0.0,
+        "rebap_std": 30.16502624165479,
+        "rebap_abs_max": 178.49,
+        "renewable_mwh": 249.3865883179072,
+        "forecast_mae_mw": 1.6593118293662397,
+        "forecast_maxerr_mw": 3.146012051424764
+      },
+      "2025-12-16": {
+        "regret_vs_rule_based": 1722.6039813186871,
+        "revenue": 51660.7221928203,
+        "mechanisms": [],
+        "daa_mean": 106.74447916666668,
+        "daa_std": 26.55611377621732,
+        "negative_price_hours": 0.0,
+        "rebap_std": 41.18216725285263,
+        "rebap_abs_max": 213.57,
+        "renewable_mwh": 467.3318345968153,
+        "forecast_mae_mw": 2.407653223171413,
+        "forecast_maxerr_mw": 5.197347756566302
+      },
+      "2025-12-20": {
+        "regret_vs_rule_based": 164.7295647726096,
+        "revenue": 25754.82533540727,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 103.05697916666666,
+        "daa_std": 13.868837153833987,
+        "negative_price_hours": 0.0,
+        "rebap_std": 27.32016936483491,
+        "rebap_abs_max": 153.34,
+        "renewable_mwh": 231.8363117688908,
+        "forecast_mae_mw": 1.279151981482864,
+        "forecast_maxerr_mw": 3.969676219438316
+      },
+      "2026-01-01": {
+        "regret_vs_rule_based": 206.36731924188643,
+        "revenue": 10968.126195263361,
+        "mechanisms": [
+          "negative_prices"
+        ],
+        "daa_mean": 9.754166666666668,
+        "daa_std": 15.224030255560523,
+        "negative_price_hours": 2.5,
+        "rebap_std": 45.89284605149911,
+        "rebap_abs_max": 144.38,
+        "renewable_mwh": 1447.133922346034,
+        "forecast_mae_mw": 1.9178287692266773,
+        "forecast_maxerr_mw": 6.179544342805755
+      },
+      "2026-01-08": {
+        "regret_vs_rule_based": -80.82521179835385,
+        "revenue": 31065.033914339936,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 154.1209375,
+        "daa_std": 70.44806009391667,
+        "negative_price_hours": 0.0,
+        "rebap_std": 322.62093527556704,
+        "rebap_abs_max": 2073.28,
+        "renewable_mwh": 477.09097618659814,
+        "forecast_mae_mw": 4.34065203977043,
+        "forecast_maxerr_mw": 7.27917466875315
+      },
+      "2026-01-12": {
+        "regret_vs_rule_based": 1432.9892303394954,
+        "revenue": 62495.71922869184,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error"
+        ],
+        "daa_mean": 104.34937500000001,
+        "daa_std": 21.233126477889254,
+        "negative_price_hours": 0.0,
+        "rebap_std": 65.7580827057403,
+        "rebap_abs_max": 412.44,
+        "renewable_mwh": 631.7997972424316,
+        "forecast_mae_mw": 4.626255161848902,
+        "forecast_maxerr_mw": 7.770077766545942
+      },
+      "2026-01-25": {
+        "regret_vs_rule_based": -37.50385037458909,
+        "revenue": 45932.4025304356,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 111.92833333333333,
+        "daa_std": 11.218031306289394,
+        "negative_price_hours": 0.0,
+        "rebap_std": 41.62734492425271,
+        "rebap_abs_max": 220.13,
+        "renewable_mwh": 400.4945602176963,
+        "forecast_mae_mw": 1.8121660567820925,
+        "forecast_maxerr_mw": 5.356293130602809
+      },
+      "2026-01-26": {
+        "regret_vs_rule_based": -226.20942190867936,
+        "revenue": 56811.293275775126,
+        "mechanisms": [
+          "forecast_error",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 141.3096875,
+        "daa_std": 32.194161817178546,
+        "negative_price_hours": 0.0,
+        "rebap_std": 47.4779568944849,
+        "rebap_abs_max": 228.61,
+        "renewable_mwh": 383.89341073175655,
+        "forecast_mae_mw": 4.567422266259052,
+        "forecast_maxerr_mw": 5.873196216951165
+      }
+    }
+  },
+  "ckpt_seed2_050k": {
+    "sets": {
+      "worst_regret": [
+        "2025-11-12",
+        "2025-12-09",
+        "2025-12-06",
+        "2025-11-20",
+        "2025-12-25"
+      ],
+      "worst_revenue_decile": [
+        "2025-11-08",
+        "2025-11-09",
+        "2025-12-05",
+        "2025-11-10",
+        "2025-12-20",
+        "2025-11-07",
+        "2025-12-03",
+        "2026-01-01",
+        "2025-12-12",
+        "2026-01-08"
+      ],
+      "largest_deviation": [
+        "2026-01-01",
+        "2025-11-12",
+        "2026-01-12",
+        "2025-11-01",
+        "2025-11-19"
+      ]
+    },
+    "days": {
+      "2025-11-01": {
+        "regret_vs_rule_based": 7557.478102277062,
+        "revenue": 46465.61384310937,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility"
+        ],
+        "daa_mean": 47.63104166666667,
+        "daa_std": 29.142627086422113,
+        "negative_price_hours": 0.0,
+        "rebap_std": 51.33073134205938,
+        "rebap_abs_max": 311.2,
+        "renewable_mwh": 832.0994310835458,
+        "forecast_mae_mw": 1.8660725514782908,
+        "forecast_maxerr_mw": 4.053555855746467
+      },
+      "2025-11-07": {
+        "regret_vs_rule_based": -800.1760630652534,
+        "revenue": 28774.17449113601,
+        "mechanisms": [
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 110.80458333333333,
+        "daa_std": 28.437429117738276,
+        "negative_price_hours": 0.0,
+        "rebap_std": 45.19796573696634,
+        "rebap_abs_max": 316.74,
+        "renewable_mwh": 237.0888764880353,
+        "forecast_mae_mw": 2.389618815326324,
+        "forecast_maxerr_mw": 4.975901669497482
+      },
+      "2025-11-08": {
+        "regret_vs_rule_based": 151.08186116500474,
+        "revenue": 11692.918887679514,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 106.46479166666666,
+        "daa_std": 15.115634288927382,
+        "negative_price_hours": 0.0,
+        "rebap_std": 32.065370290457416,
+        "rebap_abs_max": 182.44,
+        "renewable_mwh": 91.429459038363,
+        "forecast_mae_mw": 1.0580106099560787,
+        "forecast_maxerr_mw": 2.616923833434443
+      },
+      "2025-11-09": {
+        "regret_vs_rule_based": 377.8514088866468,
+        "revenue": 12641.13293573257,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 99.0046875,
+        "daa_std": 11.089404661012107,
+        "negative_price_hours": 0.0,
+        "rebap_std": 28.84158075010679,
+        "rebap_abs_max": 175.26,
+        "renewable_mwh": 101.32542478945271,
+        "forecast_mae_mw": 0.8620958156737496,
+        "forecast_maxerr_mw": 1.8934633589778933
+      },
+      "2025-11-10": {
+        "regret_vs_rule_based": 432.14793248450223,
+        "revenue": 25276.82511994564,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 109.88843750000001,
+        "daa_std": 24.671495079009578,
+        "negative_price_hours": 0.0,
+        "rebap_std": 37.8902783535117,
+        "rebap_abs_max": 295.03,
+        "renewable_mwh": 241.52144747636493,
+        "forecast_mae_mw": 0.9949495754590171,
+        "forecast_maxerr_mw": 3.1142635485699977
+      },
+      "2025-11-12": {
+        "regret_vs_rule_based": -9303.29229742878,
+        "revenue": 57209.18603738063,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error"
+        ],
+        "daa_mean": 80.32375,
+        "daa_std": 22.543690693942875,
+        "negative_price_hours": 0.0,
+        "rebap_std": 55.090020203284226,
+        "rebap_abs_max": 324.58,
+        "renewable_mwh": 812.1014077690953,
+        "forecast_mae_mw": 2.7426744749817367,
+        "forecast_maxerr_mw": 7.6413799638298805
+      },
+      "2025-11-19": {
+        "regret_vs_rule_based": 3043.815813840505,
+        "revenue": 64587.64479360164,
+        "mechanisms": [
+          "rebap_volatility"
+        ],
+        "daa_mean": 102.534375,
+        "daa_std": 16.653172171072242,
+        "negative_price_hours": 0.0,
+        "rebap_std": 53.41746862006887,
+        "rebap_abs_max": 379.05,
+        "renewable_mwh": 602.0481206756615,
+        "forecast_mae_mw": 1.732760092407788,
+        "forecast_maxerr_mw": 3.138948757723721
+      },
+      "2025-11-20": {
+        "regret_vs_rule_based": -3467.6050203846535,
+        "revenue": 56858.04146761935,
+        "mechanisms": [
+          "price_volatility"
+        ],
+        "daa_mean": 125.98635416666667,
+        "daa_std": 30.447950297727747,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.62812190424689,
+        "rebap_abs_max": 207.8,
+        "renewable_mwh": 452.6245482839062,
+        "forecast_mae_mw": 1.5107854057232324,
+        "forecast_maxerr_mw": 2.953674799422064
+      },
+      "2025-12-03": {
+        "regret_vs_rule_based": -278.0785664295945,
+        "revenue": 28993.373786933553,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 164.806875,
+        "daa_std": 65.01597252971284,
+        "negative_price_hours": 0.0,
+        "rebap_std": 207.6860072354151,
+        "rebap_abs_max": 1300.58,
+        "renewable_mwh": 156.54830004768232,
+        "forecast_mae_mw": 0.5764681023439008,
+        "forecast_maxerr_mw": 2.0276492393726517
+      },
+      "2025-12-05": {
+        "regret_vs_rule_based": -57.74351823249526,
+        "revenue": 21844.737993317754,
+        "mechanisms": [
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 133.28635416666665,
+        "daa_std": 35.630495983069984,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.96937157732238,
+        "rebap_abs_max": 378.64,
+        "renewable_mwh": 145.4092438889431,
+        "forecast_mae_mw": 0.7998659990271255,
+        "forecast_maxerr_mw": 2.9094713463408404
+      },
+      "2025-12-06": {
+        "regret_vs_rule_based": -3665.247681099536,
+        "revenue": 60796.46569376524,
+        "mechanisms": [],
+        "daa_mean": 79.61416666666668,
+        "daa_std": 9.692424089061634,
+        "negative_price_hours": 0.0,
+        "rebap_std": 27.3452413085389,
+        "rebap_abs_max": 151.85,
+        "renewable_mwh": 818.1273365943114,
+        "forecast_mae_mw": 0.9317555894285038,
+        "forecast_maxerr_mw": 2.793388053289199
+      },
+      "2025-12-09": {
+        "regret_vs_rule_based": -5691.174446688361,
+        "revenue": 57872.1180549196,
+        "mechanisms": [
+          "forecast_error"
+        ],
+        "daa_mean": 91.57416666666667,
+        "daa_std": 18.546071443090643,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.0114640273607,
+        "rebap_abs_max": 226.46,
+        "renewable_mwh": 690.5042256200909,
+        "forecast_mae_mw": 2.543709393980887,
+        "forecast_maxerr_mw": 5.712466892198179
+      },
+      "2025-12-12": {
+        "regret_vs_rule_based": -381.50576684480257,
+        "revenue": 30743.533502797247,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 113.4434375,
+        "daa_std": 19.742910532862012,
+        "negative_price_hours": 0.0,
+        "rebap_std": 30.16502624165479,
+        "rebap_abs_max": 178.49,
+        "renewable_mwh": 249.3865883179072,
+        "forecast_mae_mw": 1.6593118293662397,
+        "forecast_maxerr_mw": 3.146012051424764
+      },
+      "2025-12-20": {
+        "regret_vs_rule_based": 4.340311816846224,
+        "revenue": 25594.436082451506,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 103.05697916666666,
+        "daa_std": 13.868837153833987,
+        "negative_price_hours": 0.0,
+        "rebap_std": 27.32016936483491,
+        "rebap_abs_max": 153.34,
+        "renewable_mwh": 231.8363117688908,
+        "forecast_mae_mw": 1.279151981482864,
+        "forecast_maxerr_mw": 3.969676219438316
+      },
+      "2025-12-25": {
+        "regret_vs_rule_based": -3240.956525043388,
+        "revenue": 43690.1193002251,
+        "mechanisms": [
+          "forecast_error"
+        ],
+        "daa_mean": 69.75135416666666,
+        "daa_std": 18.898213629191677,
+        "negative_price_hours": 0.0,
+        "rebap_std": 27.505720159506016,
+        "rebap_abs_max": 183.59,
+        "renewable_mwh": 714.9016756474676,
+        "forecast_mae_mw": 4.2741075179324355,
+        "forecast_maxerr_mw": 8.31947657975681
+      },
+      "2026-01-01": {
+        "regret_vs_rule_based": 19880.604503050687,
+        "revenue": 30642.36337907216,
+        "mechanisms": [
+          "negative_prices"
+        ],
+        "daa_mean": 9.754166666666668,
+        "daa_std": 15.224030255560523,
+        "negative_price_hours": 2.5,
+        "rebap_std": 45.89284605149911,
+        "rebap_abs_max": 144.38,
+        "renewable_mwh": 1447.133922346034,
+        "forecast_mae_mw": 1.9178287692266773,
+        "forecast_maxerr_mw": 6.179544342805755
+      },
+      "2026-01-08": {
+        "regret_vs_rule_based": -189.88222003470582,
+        "revenue": 30955.976906103584,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 154.1209375,
+        "daa_std": 70.44806009391667,
+        "negative_price_hours": 0.0,
+        "rebap_std": 322.62093527556704,
+        "rebap_abs_max": 2073.28,
+        "renewable_mwh": 477.09097618659814,
+        "forecast_mae_mw": 4.34065203977043,
+        "forecast_maxerr_mw": 7.27917466875315
+      },
+      "2026-01-12": {
+        "regret_vs_rule_based": -1644.9840858967582,
+        "revenue": 59417.74591245559,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error"
+        ],
+        "daa_mean": 104.34937500000001,
+        "daa_std": 21.233126477889254,
+        "negative_price_hours": 0.0,
+        "rebap_std": 65.7580827057403,
+        "rebap_abs_max": 412.44,
+        "renewable_mwh": 631.7997972424316,
+        "forecast_mae_mw": 4.626255161848902,
+        "forecast_maxerr_mw": 7.770077766545942
+      }
+    }
+  },
+  "ckpt_seed2_best": {
+    "sets": {
+      "worst_regret": [
+        "2026-01-05",
+        "2026-01-08",
+        "2025-11-25",
+        "2026-01-02",
+        "2026-01-12"
+      ],
+      "worst_revenue_decile": [
+        "2026-01-08",
+        "2025-11-08",
+        "2025-11-09",
+        "2025-12-05",
+        "2026-01-05",
+        "2025-11-10",
+        "2025-12-20",
+        "2025-12-03",
+        "2026-01-01",
+        "2025-12-12"
+      ],
+      "largest_deviation": [
+        "2026-01-01",
+        "2026-01-12",
+        "2025-11-04",
+        "2025-12-02",
+        "2026-01-30"
+      ]
+    },
+    "days": {
+      "2025-11-04": {
+        "regret_vs_rule_based": -3727.4658254146198,
+        "revenue": 39844.481848101495,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 73.55343749999999,
+        "daa_std": 42.19023933891891,
+        "negative_price_hours": 0.0,
+        "rebap_std": 68.15926673076846,
+        "rebap_abs_max": 527.18,
+        "renewable_mwh": 774.8027047886948,
+        "forecast_mae_mw": 2.808503661735493,
+        "forecast_maxerr_mw": 5.8554896411772965
+      },
+      "2025-11-08": {
+        "regret_vs_rule_based": -390.26437439090114,
+        "revenue": 11151.572652123608,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 106.46479166666666,
+        "daa_std": 15.115634288927382,
+        "negative_price_hours": 0.0,
+        "rebap_std": 32.065370290457416,
+        "rebap_abs_max": 182.44,
+        "renewable_mwh": 91.429459038363,
+        "forecast_mae_mw": 1.0580106099560787,
+        "forecast_maxerr_mw": 2.616923833434443
+      },
+      "2025-11-09": {
+        "regret_vs_rule_based": -196.5296537346676,
+        "revenue": 12066.751873111256,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 99.0046875,
+        "daa_std": 11.089404661012107,
+        "negative_price_hours": 0.0,
+        "rebap_std": 28.84158075010679,
+        "rebap_abs_max": 175.26,
+        "renewable_mwh": 101.32542478945271,
+        "forecast_mae_mw": 0.8620958156737496,
+        "forecast_maxerr_mw": 1.8934633589778933
+      },
+      "2025-11-10": {
+        "regret_vs_rule_based": 299.5878190974727,
+        "revenue": 25144.26500655861,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 109.88843750000001,
+        "daa_std": 24.671495079009578,
+        "negative_price_hours": 0.0,
+        "rebap_std": 37.8902783535117,
+        "rebap_abs_max": 295.03,
+        "renewable_mwh": 241.52144747636493,
+        "forecast_mae_mw": 0.9949495754590171,
+        "forecast_maxerr_mw": 3.1142635485699977
+      },
+      "2025-11-25": {
+        "regret_vs_rule_based": -9469.47987928547,
+        "revenue": 31138.81548168933,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 220.5169791666667,
+        "daa_std": 106.86272762013999,
+        "negative_price_hours": 0.0,
+        "rebap_std": 51.68990631983901,
+        "rebap_abs_max": 279.8,
+        "renewable_mwh": 122.87272430501245,
+        "forecast_mae_mw": 0.6709850115968351,
+        "forecast_maxerr_mw": 1.9218777933835218
+      },
+      "2025-12-02": {
+        "regret_vs_rule_based": -3658.546253762477,
+        "revenue": 49375.46566641576,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility"
+        ],
+        "daa_mean": 100.36999999999999,
+        "daa_std": 36.39081775210151,
+        "negative_price_hours": 0.0,
+        "rebap_std": 66.43894027057735,
+        "rebap_abs_max": 297.53,
+        "renewable_mwh": 683.8161066075525,
+        "forecast_mae_mw": 0.8579794104090425,
+        "forecast_maxerr_mw": 2.403810744503833
+      },
+      "2025-12-03": {
+        "regret_vs_rule_based": -2100.4858641515275,
+        "revenue": 27170.96648921162,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 164.806875,
+        "daa_std": 65.01597252971284,
+        "negative_price_hours": 0.0,
+        "rebap_std": 207.6860072354151,
+        "rebap_abs_max": 1300.58,
+        "renewable_mwh": 156.54830004768232,
+        "forecast_mae_mw": 0.5764681023439008,
+        "forecast_maxerr_mw": 2.0276492393726517
+      },
+      "2025-12-05": {
+        "regret_vs_rule_based": -499.867917585987,
+        "revenue": 21402.613593964263,
+        "mechanisms": [
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 133.28635416666665,
+        "daa_std": 35.630495983069984,
+        "negative_price_hours": 0.0,
+        "rebap_std": 42.96937157732238,
+        "rebap_abs_max": 378.64,
+        "renewable_mwh": 145.4092438889431,
+        "forecast_mae_mw": 0.7998659990271255,
+        "forecast_maxerr_mw": 2.9094713463408404
+      },
+      "2025-12-12": {
+        "regret_vs_rule_based": -785.6407186187753,
+        "revenue": 30339.398551023274,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 113.4434375,
+        "daa_std": 19.742910532862012,
+        "negative_price_hours": 0.0,
+        "rebap_std": 30.16502624165479,
+        "rebap_abs_max": 178.49,
+        "renewable_mwh": 249.3865883179072,
+        "forecast_mae_mw": 1.6593118293662397,
+        "forecast_maxerr_mw": 3.146012051424764
+      },
+      "2025-12-20": {
+        "regret_vs_rule_based": 163.45058660454015,
+        "revenue": 25753.5463572392,
+        "mechanisms": [
+          "low_renewables"
+        ],
+        "daa_mean": 103.05697916666666,
+        "daa_std": 13.868837153833987,
+        "negative_price_hours": 0.0,
+        "rebap_std": 27.32016936483491,
+        "rebap_abs_max": 153.34,
+        "renewable_mwh": 231.8363117688908,
+        "forecast_mae_mw": 1.279151981482864,
+        "forecast_maxerr_mw": 3.969676219438316
+      },
+      "2026-01-01": {
+        "regret_vs_rule_based": 18109.685623385038,
+        "revenue": 28871.444499406512,
+        "mechanisms": [
+          "negative_prices"
+        ],
+        "daa_mean": 9.754166666666668,
+        "daa_std": 15.224030255560523,
+        "negative_price_hours": 2.5,
+        "rebap_std": 45.89284605149911,
+        "rebap_abs_max": 144.38,
+        "renewable_mwh": 1447.133922346034,
+        "forecast_mae_mw": 1.9178287692266773,
+        "forecast_maxerr_mw": 6.179544342805755
+      },
+      "2026-01-02": {
+        "regret_vs_rule_based": -7644.7780199171175,
+        "revenue": 55185.41325541371,
+        "mechanisms": [
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 54.69041666666667,
+        "daa_std": 32.78244957025617,
+        "negative_price_hours": 0.0,
+        "rebap_std": 33.44477749400142,
+        "rebap_abs_max": 185.29,
+        "renewable_mwh": 1346.4031077253521,
+        "forecast_mae_mw": 4.025534663455536,
+        "forecast_maxerr_mw": 7.941376322469964
+      },
+      "2026-01-05": {
+        "regret_vs_rule_based": -28711.382057974373,
+        "revenue": 23405.02238820743,
+        "mechanisms": [
+          "rebap_volatility",
+          "price_volatility",
+          "low_renewables"
+        ],
+        "daa_mean": 134.41156249999997,
+        "daa_std": 39.26624022639457,
+        "negative_price_hours": 0.0,
+        "rebap_std": 265.792835145231,
+        "rebap_abs_max": 1431.95,
+        "renewable_mwh": 414.7193717189133,
+        "forecast_mae_mw": 1.5013168661875576,
+        "forecast_maxerr_mw": 4.240773198805233
+      },
+      "2026-01-08": {
+        "regret_vs_rule_based": -22480.298302929074,
+        "revenue": 8665.560823209216,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error",
+          "price_volatility"
+        ],
+        "daa_mean": 154.1209375,
+        "daa_std": 70.44806009391667,
+        "negative_price_hours": 0.0,
+        "rebap_std": 322.62093527556704,
+        "rebap_abs_max": 2073.28,
+        "renewable_mwh": 477.09097618659814,
+        "forecast_mae_mw": 4.34065203977043,
+        "forecast_maxerr_mw": 7.27917466875315
+      },
+      "2026-01-12": {
+        "regret_vs_rule_based": -5735.148092495874,
+        "revenue": 55327.581905856474,
+        "mechanisms": [
+          "rebap_volatility",
+          "forecast_error"
+        ],
+        "daa_mean": 104.34937500000001,
+        "daa_std": 21.233126477889254,
+        "negative_price_hours": 0.0,
+        "rebap_std": 65.7580827057403,
+        "rebap_abs_max": 412.44,
+        "renewable_mwh": 631.7997972424316,
+        "forecast_mae_mw": 4.626255161848902,
+        "forecast_maxerr_mw": 7.770077766545942
+      },
+      "2026-01-30": {
+        "regret_vs_rule_based": -2483.412699264023,
+        "revenue": 59737.62848213995,
+        "mechanisms": [
+          "forecast_error"
+        ],
+        "daa_mean": 113.68802083333333,
+        "daa_std": 15.219207205301442,
+        "negative_price_hours": 0.0,
+        "rebap_std": 43.42291303322743,
+        "rebap_abs_max": 246.47,
+        "renewable_mwh": 545.2140636384349,
+        "forecast_mae_mw": 4.945125181066384,
+        "forecast_maxerr_mw": 6.66798860346487
+      }
+    }
+  }
+}

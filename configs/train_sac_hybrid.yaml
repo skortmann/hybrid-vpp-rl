@@ -1,0 +1,72 @@
+# Promoted training recipe: SAC on strategic market actions (act-v5) with
+# deterministic rule-based dispatch, under penalized-imbalance economics.
+# This is the configuration behind the released sac_hybrid_seed* checkpoints
+# (five seeds: set training.seed to 0..4). All other settings inherit the
+# framework defaults; works against the real database or the synthetic
+# fallback (data.market_database.mode: auto).
+#
+#   uv run python -m hybrid_vpp.training.train        # reads CONFIG_PATH
+#
+# Deployment note: combine the resulting checkpoints with the mean-action
+# ensemble and a 0.1 bounded residual (see docs/controllers.md).
+
+episode:
+  action_mode: strategic
+  strategic_gain_max: 1.25
+  strategic_fixed_dispatch: true
+
+markets:
+  imbalance:
+    model: rebap
+    deviation_penalty_eur_per_mwh: 25.0
+
+training:
+  algorithm: sac
+  seed: 0
+  total_timesteps: 300000
+  n_envs: 4
+  eval_freq: 50000
+  algo_kwargs:
+    ent_coef: 0.005
+    gradient_steps: 2
+    learning_starts: 10000
+
+site:
+  battery:
+    charge_efficiency: 0.95
+    charge_power_mw: 30.0
+    degradation_cost_eur_per_mwh_throughput: 1.5
+    discharge_efficiency: 0.95
+    discharge_power_mw: 30.0
+    energy_capacity_mwh: 60.0
+    soc_initial: 0.5
+    soc_max: 0.95
+    soc_min: 0.05
+    soc_terminal_target: 0.5
+  curtailment_cost_eur_per_mwh: 0.0
+  grid:
+    allow_grid_import: true
+    congestion_resolution:
+      mode: optimization
+      weights:
+        bess_deviation: 1.0
+        pv_curtailment: 10.0
+        wind_curtailment: 10.0
+    export_limit_mw: 100.0
+    import_limit_mw: 30.0
+  name: hybrid-park-de
+  pv:
+    azimuth_deg: 180.0
+    capacity_mw: 50.0
+    latitude: 53.4
+    longitude: 8.1
+    system_loss: 0.1
+    tilt_deg: 35.0
+    tracking: 0
+  wind:
+    capacity_mw: 70.0
+    hub_height_m: 100.0
+    latitude: 53.4
+    longitude: 8.1
+    offshore: false
+    turbine_model: Vestas V112 3000

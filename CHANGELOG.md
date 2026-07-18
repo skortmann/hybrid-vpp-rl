@@ -1,5 +1,49 @@
 # Changelog
 
+## v0.2.0 (2026-07-18)
+
+Research-consolidation release: the repository now presents the completed
+study and its promoted deployment design.
+
+### Added
+* Strategic action mode (`act-v5`): seven economic decision variables
+  translated deterministically through the rule-based structure, with an
+  interiorized gain range and optional deterministic rule-based dispatch
+  (the promoted hybrid architecture).
+* SAC/TQC/CrossQ support through a common algorithm adapter; the promoted
+  training recipe is published as `configs/train_sac_hybrid.yaml`.
+* Policy ensembles in action space, safety gates (disagreement threshold,
+  confidence scaling, bounded residual), and the auditable
+  `EnsembleDeploymentController` with missing-data and out-of-range
+  fallbacks and a replayable decision log.
+* Blocked temporal validation, predefined selection rules,
+  leave-one-block-out reliability analysis, and a hierarchical
+  seed-day bootstrap for paired controller comparisons.
+* Benchmark MILP variants (turnover-penalized, forecast-derated) and a
+  zero-shot sensitivity suite (grid limits, storage sizing, forecast
+  quality, deviation-penalty sweep).
+* Canonical machine-readable results (`results/final_results.{json,csv}`)
+  regenerated from committed artifacts by
+  `hybrid_vpp.evaluation.export_results`; final study report and phase
+  analyses under `reports/`.
+* Public controller API in `hybrid_vpp.controllers`; runnable examples
+  under `examples/`.
+
+### Changed
+* Penalized-imbalance economics (historical reBAP plus a 25 EUR/MWh
+  deviation penalty) are the default evaluation setting for all
+  controllers.
+* Dependencies split into a minimal core plus `rl`, `jax`, `tracking`,
+  `optimization`, and `gurobi` extras; a minimal install runs the
+  synthetic quick start, rule-based simulation, and basic evaluation.
+
+### Removed
+* The research-campaign orchestration (run registry, worker, supervisor,
+  systemd unit) and the internal research diary; both remain available in
+  history at tag `robust-rl-final`. Training exposes a plain JSON
+  heartbeat instead.
+
+
 ## v0.1.0 (2026-07-15)
 
 Initial release.

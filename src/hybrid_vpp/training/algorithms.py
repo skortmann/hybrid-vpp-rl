@@ -8,7 +8,7 @@ so comparisons differ in nothing but the algorithm itself.
 
 from __future__ import annotations
 
-ALGORITHMS = ("ppo", "sac", "tqc", "td3", "recurrent_ppo")
+ALGORITHMS = ("ppo", "sac", "tqc", "td3", "recurrent_ppo", "crossq", "sbx_sac")
 
 
 def algo_class(name: str):
@@ -16,6 +16,14 @@ def algo_class(name: str):
         from stable_baselines3 import PPO
 
         return PPO
+    if name == "crossq":
+        from sbx import CrossQ
+
+        return CrossQ
+    if name == "sbx_sac":
+        from sbx import SAC
+
+        return SAC
     if name == "sac":
         from stable_baselines3 import SAC
 
@@ -95,6 +103,18 @@ def default_kwargs(name: str) -> dict:
             gradient_steps=1,
             policy_delay=2,
             policy_kwargs={"net_arch": [256, 256]},
+        )
+    if name in ("crossq", "sbx_sac"):
+        # CrossQ (Bhatt et al., ICLR 2024) via the maintained SBX implementation:
+        # BatchNorm critics, no target network, higher UTD tolerated
+        return dict(
+            learning_rate=3e-4,
+            buffer_size=300_000,
+            learning_starts=5_000,
+            batch_size=256,
+            gamma=0.995,
+            train_freq=1,
+            gradient_steps=1,
         )
     raise ValueError(f"unknown algorithm {name!r}")
 

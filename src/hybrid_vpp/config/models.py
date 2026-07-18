@@ -403,13 +403,22 @@ class EpisodeConfig(BaseModel):
     #: penalty applied by the env for requested-but-infeasible actions, EUR/MWh
     infeasibility_penalty_eur_per_mwh: float = Field(default=0.0, ge=0)
     #: action formulation (see hybrid_vpp.envs.actions for schema docs)
-    action_mode: Literal["direct", "target_position", "hourly_target", "residual_hourly"] = "direct"
+    action_mode: Literal[
+        "direct", "target_position", "hourly_target", "residual_hourly", "strategic"
+    ] = "direct"
     #: max market correction per hour anchor in residual mode, MW
     residual_scale_mw: float = Field(default=25.0, gt=0)
+    #: upper bound of the strategic correction gains. 1.0 places the
+    #: rule-based optimum at the action-space corner (unreachable for
+    #: squashed-Gaussian policies); >1 moves it into the interior.
+    strategic_gain_max: float = Field(default=1.0, ge=1.0, le=2.0)
+    #: hybrid H4: dispatch follows the deterministic rule-based controller
+    #: exactly (RL controls only market decisions; dispatch dims are inert)
+    strategic_fixed_dispatch: bool = False
 
 
 class TrainingConfig(BaseModel):
-    algorithm: Literal["ppo", "sac", "tqc", "td3", "recurrent_ppo"] = "ppo"
+    algorithm: Literal["ppo", "sac", "tqc", "td3", "recurrent_ppo", "crossq", "sbx_sac"] = "ppo"
     total_timesteps: int = Field(default=2_000_000, gt=0)
     seed: int = 0
     n_envs: int = Field(default=8, ge=1)
@@ -420,6 +429,13 @@ class TrainingConfig(BaseModel):
     tensorboard_dir: Path = Path("runs/tb")
     tracker: Literal["wandb", "tensorboard", "none"] = "wandb"
     wandb_project: str = "hybrid-vpp-rl"
+    #: prior-trajectory npz to preload into off-policy replay buffers (RLPD-style)
+    replay_prefill_path: Path | None = None
+    #: prior-trajectory npz for behavior-cloned actor initialization
+    bc_pretrain_path: Path | None = None
+    #: controller label whose transitions are imitated (dataset metadata)
+    bc_controller: str = "rule_based"
+    bc_epochs: int = Field(default=25, ge=1)
     policy_kwargs: dict = {}
     algo_kwargs: dict = {}
 

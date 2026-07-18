@@ -85,6 +85,12 @@ class HybridVppEnv(gym.Env):
             from hybrid_vpp.controllers.rule_based import RuleBasedController
 
             self._baseline_controller = RuleBasedController(cfg, renewable_fc, price_fc)
+        if self.layout.is_strategic:
+            from hybrid_vpp.envs.strategic import StrategicTranslator
+
+            self.layout.strategic_translator = StrategicTranslator(
+                cfg, self._baseline_controller, price_fc
+            )
 
         self.action_space = gym.spaces.Box(-1.0, 1.0, (self.layout.size,), np.float32)
         self.observation_space = gym.spaces.Box(
@@ -153,7 +159,7 @@ class HybridVppEnv(gym.Env):
         event = self._event
         baseline = (
             self._baseline_controller.act(event, self.sim)
-            if self._baseline_controller is not None
+            if self._baseline_controller is not None and not self.layout.is_strategic
             else None
         )
         logical = self.layout.translate(

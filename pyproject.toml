@@ -1,6 +1,6 @@
 [project]
 name = "hybrid-vpp-rl"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reinforcement-learning energy management and trading framework for a hybrid wind-PV-BESS virtual power plant (German DAA / IDA1-3 / IDC markets)"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -17,24 +17,35 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
 ]
+# Minimal core: synthetic market data, deterministic simulation,
+# rule-based control, and basic evaluation — no ML or solver stack.
 dependencies = [
     "numpy>=1.26",
     "pandas>=2.2",
     "pydantic>=2.7",
     "pyyaml>=6.0",
     "gymnasium>=1.0",
-    "stable-baselines3>=2.4",
-    "torch>=2.3",
     "matplotlib>=3.9",
     "requests>=2.32",
     "pyarrow>=16.0",
-    "tensorboard>=2.16",
-    "wandb>=0.28.0",
-    "weave>=0.53.1",
-    "gurobipy>=13.0.2",
-    "pyoptinterface[highs]>=0.6.1",
-    "sb3-contrib>=2.9.0",
 ]
+
+[project.optional-dependencies]
+# reinforcement learning (training and loading the released checkpoints)
+rl = [
+    "stable-baselines3>=2.4",
+    "torch>=2.3",
+    "sb3-contrib>=2.9.0",
+    "tensorboard>=2.16",
+]
+# JAX-based algorithms evaluated in the study (CrossQ, SBX-SAC)
+jax = ["sbx-rl>=0.27.0"]
+# experiment tracking
+tracking = ["wandb>=0.28.0", "weave>=0.53.1"]
+# MILP benchmark controller (open-source HiGHS backend included)
+optimization = ["pyoptinterface[highs]>=0.6.1"]
+# commercial solver backend for the MILP benchmark (license required)
+gurobi = ["gurobipy>=13.0.2"]
 
 [project.urls]
 Repository = "https://github.com/skortmann/hybrid-vpp-rl"
@@ -48,6 +59,11 @@ dev = [
     "pymdown-extensions>=11.0.1",
     "pytest>=8.0",
     "ruff>=0.5",
+    "tabulate>=0.10.0",
+    # test-time controller dependencies
+    "pyoptinterface[highs]>=0.6.1",
+    "stable-baselines3>=2.4",
+    "torch>=2.3",
 ]
 
 [tool.uv.sources]

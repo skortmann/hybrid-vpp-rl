@@ -69,7 +69,122 @@ class EpisodeMetricsCallback:
         return _Callback()
 
 
-def train(config_path: str | Path, resume_from: str | None = None) -> Path:
+class HeartbeatCallback:
+    """Writes a small JSON heartbeat file every ``interval_s`` seconds.
+
+    Lets external process monitors observe training progress without any
+    coupling to a specific orchestration tool.
+    """
+
+    def __new__(cls, path: Path, experiment_id: str, interval_s: float = 30.0):
+        import os
+        import time as _time
+        from datetime import UTC, datetime
+
+        from stable_baselines3.common.callbacks import BaseCallback
+
+        class _Callback(BaseCallback):
+            def __init__(self) -> None:
+                super().__init__()
+                self._last = 0.0
+
+            def _on_step(self) -> bool:
+                now = _time.time()
+                if now - self._last >= interval_s:
+                    self._last = now
+                    payload = {
+                        "experiment_id": experiment_id,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "pid": os.getpid(),
+                        "environment_steps": int(self.num_timesteps),
+                        "phase": "training",
+                    }
+                    tmp = path.with_suffix(".tmp")
+                    tmp.write_text(json.dumps(payload))
+                    tmp.replace(path)
+                return True
+
+        return _Callback()
+
+
+def prefill_replay_buffer(model, dataset_path: Path, n_envs: int) -> int:
+    """Load prior transitions (training-split npz) into an off-policy buffer.
+
+    Transitions are inserted in groups of ``n_envs`` distinct samples (the
+    buffer stores one slot per parallel env); the trailing remainder that
+    does not fill a group is dropped. On-policy algorithms have no replay
+    buffer — a configuration error, surfaced loudly.
+    """
+    import numpy as np
+
+    buffer = getattr(model, "replay_buffer", None)
+    if buffer is None:
+        raise ValueError("replay_prefill_path set, but the algorithm has no replay buffer")
+    data = np.load(dataset_path, allow_pickle=False)
+    obs, next_obs = data["obs"], data["next_obs"]
+    actions, rewards, dones = data["action"], data["reward"], data["done"]
+    if obs.shape[1] != model.observation_space.shape[0]:
+        raise ValueError(
+            f"prior dataset obs dim {obs.shape[1]} != env obs dim "
+            f"{model.observation_space.shape[0]} — schema mismatch"
+        )
+    total = (len(rewards) // n_envs) * n_envs
+    infos = [{} for _ in range(n_envs)]
+    for i in range(0, total, n_envs):
+        sl = slice(i, i + n_envs)
+        buffer.add(obs[sl], next_obs[sl], actions[sl], rewards[sl], dones[sl], infos)
+    return total
+
+
+def behavior_clone_actor(
+    model, dataset_path: Path, controller: str, epochs: int, batch_size: int = 512
+) -> float:
+    """Supervised pretraining of the actor mean on one controller's actions.
+
+    Fits the deterministic head of the (torch) actor to the demonstrated
+    actions with MSE before RL fine-tuning. Supported for SAC/TQC-style
+    policies with an ``actor.mu`` head; other algorithms raise loudly.
+    """
+    import numpy as np
+    import torch
+
+    actor = getattr(model.policy, "actor", None)
+    if actor is None or not hasattr(actor, "mu"):
+        raise ValueError("bc_pretrain_path requires a SAC/TQC-style torch actor")
+
+    data = np.load(dataset_path, allow_pickle=False)
+    mask = data["controller"] == controller
+    if not mask.any():
+        raise ValueError(f"no transitions from controller {controller!r} in dataset")
+    obs = torch.as_tensor(data["obs"][mask], dtype=torch.float32, device=model.device)
+    # imitate the pre-squash mean: atanh of the clipped stored action
+    actions = torch.as_tensor(
+        np.arctanh(np.clip(data["action"][mask], -0.999, 0.999)),
+        dtype=torch.float32,
+        device=model.device,
+    )
+    optimizer = torch.optim.Adam(actor.parameters(), lr=1e-3)
+    final = float("nan")
+    for _ in range(epochs):
+        perm = torch.randperm(len(obs))
+        for i in range(0, len(obs), batch_size):
+            idx = perm[i : i + batch_size]
+            features = actor.extract_features(obs[idx], actor.features_extractor)
+            mean = actor.mu(actor.latent_pi(features))
+            loss = torch.nn.functional.mse_loss(mean, actions[idx])
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            final = float(loss.detach())
+    return final
+
+
+def train(
+    config_path: str | Path,
+    resume_from: str | None = None,
+    heartbeat_path: Path | None = None,
+    experiment_id: str | None = None,
+) -> Path:
     import torch
     from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
     from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -124,12 +239,15 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
         except Exception:
             log.exception("wandb init failed — continuing with tensorboard only")
 
-    # fork: workers inherit the parent's loaded market-data frames (copy-on-write)
+    # spawn (not fork): forking a parent that already carries torch/wandb
+    # threads deadlocks the workers on inherited locks — observed as lanes
+    # freezing on their second train() call. Spawned workers re-import and
+    # reload the parquet caches (~5 s each), which is an acceptable cost.
     train_env = SubprocVecEnv(
         [make_env_fn(cfg, "train", rank) for rank in range(tc.n_envs)],
-        start_method="fork",
+        start_method="spawn",
     )
-    eval_env = SubprocVecEnv([make_env_fn(cfg, "val", 900, sequential=True)], start_method="fork")
+    eval_env = SubprocVecEnv([make_env_fn(cfg, "val", 900, sequential=True)], start_method="spawn")
 
     from hybrid_vpp.training.algorithms import algo_class, default_kwargs, policy_name
 
@@ -152,6 +270,16 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
     else:
         model = algo_cls(**algo_kwargs)
 
+    if tc.replay_prefill_path is not None:
+        n_added = prefill_replay_buffer(model, Path(tc.replay_prefill_path), tc.n_envs)
+        log.info("prefilled replay buffer with %d prior transitions", n_added)
+
+    if tc.bc_pretrain_path is not None:
+        loss = behavior_clone_actor(
+            model, Path(tc.bc_pretrain_path), tc.bc_controller, tc.bc_epochs
+        )
+        log.info("behavior-cloned actor on %s (final MSE %.5f)", tc.bc_controller, loss)
+
     eval_freq = max(tc.eval_freq // tc.n_envs, 1)
     callbacks = [
         EvalCallback(
@@ -167,6 +295,8 @@ def train(config_path: str | Path, resume_from: str | None = None) -> Path:
         ),
         EpisodeMetricsCallback(),
     ]
+    if heartbeat_path is not None:
+        callbacks.append(HeartbeatCallback(Path(heartbeat_path), experiment_id or run_dir.name))
 
     model.learn(
         total_timesteps=tc.total_timesteps,

@@ -60,13 +60,13 @@ class ObservationBuilder:
 
     @property
     def size(self) -> int:
-        return N_SCALARS + 5 * self.layout.n_slots
+        return N_SCALARS + 5 * self.layout.obs_slots
 
     def start_episode(self, window_start_utc: pd.Timestamp) -> None:
         self._window_start = window_start_utc
         step = pd.Timedelta(hours=1) if self.layout.hourly else pd.Timedelta(minutes=15)
         self._slot_times = pd.DatetimeIndex(
-            [window_start_utc + k * step for k in range(self.layout.n_slots)]
+            [window_start_utc + k * step for k in range(self.layout.obs_slots)]
         )
 
     def build(self, event: MarketEvent, sim: Simulator) -> np.ndarray:
@@ -139,7 +139,7 @@ class ObservationBuilder:
             / site.grid.export_limit_mw
         )
 
-        mask = self.layout.mask(self._window_start, event)[: self.layout.n_slots]
+        mask = self.layout.eligibility_mask(self._window_start, event)
 
         obs = np.concatenate(
             [

@@ -1,85 +1,93 @@
-# RL research program
+# Research summary
 
-Goal: a controller that is demonstrably near-optimal on the hybrid-VPP
-problem, measured against information-equivalent benchmarks on fixed
-episodes. This page records the definition of success, the baseline that
-research starts from, the formulation diagnosis, and the experiment
-protocol. Results live in `experiments/registry.jsonl` (one JSON line per
-run) and in the W&B project.
+How the study was run and what it established. Headline numbers are in
+[results](results.md); the full narrative including every negative result
+is in `reports/final_study_report.md`. The internal research diaries are
+preserved in history at tags `rl-frontier-v1` and `robust-rl-final`.
 
-## Near-optimality definition
+## Evaluation discipline
 
-All controllers are evaluated on identical fixed validation/test episodes
-(same days, profiles, prices, forecasts, constraints, costs). Two
-references:
+All controllers were evaluated on identical fixed episodes (same days,
+profiles, prices, forecasts, constraints, costs) against two references:
+the **information-equivalent MILP** (rolling optimization on exactly the
+forecasts available to the RL agent) and the **perfect-foresight MILP**
+(unattainable upper bound, reported but never a target). Splits are
+chronological; model selection used validation data only; each research
+phase ended with a single locked test evaluation. Where selection rules
+or thresholds were compared, they were fixed before evaluation and scored
+by leave-one-block-out on contiguous temporal folds.
 
-* **Information-equivalent MILP** — rolling optimization using only the
-  forecasts available to the RL agent at the same decision times.
-* **Perfect-foresight MILP** — realized prices/profiles; an unattainable
-  information upper bound, reported but not the pass/fail target.
+## Formulation study
 
-Primary criterion (per §evaluation): `Gap_info = (J_MILP_info − J_RL) /
-max(|J_MILP_info|, ε)`; success requires
+Five schema-versioned action spaces were evaluated (`act-v1` … `act-v5`).
+Direct incremental orders (103 dims) fail structurally: market decisions
+receive ~1% of the gradient signal, and non-idempotent semantics create a
+trade-and-pay-imbalance churn loop. Target-position semantics fix the
+churn; the strategic space (`act-v5`: seven economic decision variables
+translated through the rule-based structure) proved the most effective —
+exploration reduces to a small box that contains the rule-based policy as
+an interior point. Algorithm choice (PPO, SAC, TQC, TD3, CrossQ)
+mattered far less than action semantics and architecture: under identical
+economics on the strategic space, off-policy algorithms landed within
+~1–2k EUR/day of each other, while PPO was consistently weakest.
 
-* median `Gap_info ≤ 5%` on the untouched test split,
-* RL's lower 95% confidence bound ≥ best non-RL baseline,
-* ≥ 5 independent seeds, no physical/accounting/leakage violations,
-* trajectory audits showing no reward or settlement exploit.
+## Validity findings
 
-If the information-equivalent MILP is weaker than the rule-based
-controller on a given period, the stronger of the two is the practical
-target. Screening anchors (first 30 validation days, EUR/day): do-nothing
-47,908 · rule-based 50,861 · info-MILP 51,165 · perfect-foresight 54,994.
+Under the original economics, expressive policies exceeded the
+perfect-foresight bound — a red flag, not a success. Profit-decomposition
+audits showed 50–67% of their profit came from deliberate deviation
+settled at historical reBAP with no penalty: **imbalance speculation**,
+legal in-model but inadmissible as market operation. The economics were
+corrected (25 EUR/MWh deviation penalty for *all* controllers, anchors
+recomputed), and the contaminated results were annotated and excluded
+from operational rankings rather than deleted.
 
-## Baseline record (v0.1.0)
+Two further mechanisms were isolated and fixed by intervention: the
+rule-equivalent optimum sat on the action-box corner, unreachable for
+squashed-Gaussian policies (fixed by interiorizing the gain range), and
+risk-neutral policies carried 3–6× the reference deviation, converting
+volatile-reBAP days into five-figure losses (fixed architecturally —
+**deterministic rule-based dispatch under RL market control**, the
+decisive design change of the study).
 
-`experiments/baseline_v1.json` snapshots the starting point: PPO on the
-103-dimensional direct action space (act-v1), obs-v1 (523 dims), W&B runs
-`nv2qwm96` (hot exploration, terminated) and `aesjpwo9` (2M-step run,
-stopped at 500k). Verdict: evaluation oscillated between −157 and
-+23 kEUR/day with no trend; action σ frozen at 0.37, clip fraction rising
-to 0.35 at KL ≈ 0.03, explained variance ~0.6. Dominated by the rule-based
-controller (~+56 kEUR/day) and stopped as uninformative.
+## Robustness study
 
-## Formulation diagnosis (act-v1 checkpoint, 8 val days)
+The first phase's residual weakness was selection: the validation-best
+seed was the worst test generalizer. The second phase replaced selection
+with construction: blocked temporal validation over all saved checkpoints
+(seed and checkpoint effects turned out comparable, with early
+checkpoints generalizing best), a pre-registered risk-adjusted selection
+score (the only rule family with positive held-out regret), mean-action
+**ensembling** of the five frozen policies (beats every member, cuts tail
+regret several-fold), and a **bounded residual** around the
+rule-equivalent action (worst-day losses capped at design time). A
+random-fallback control experiment showed that ensemble disagreement is
+not a causal safety signal — the safety value comes from bounded
+dampening itself. Regime conditioning was pruned for lack of evaluable
+evidence (the dominant failure regime occurs on one winter validation
+day), and stronger MILP benchmark variants (turnover-penalized,
+forecast-derated) confirmed rather than closed the robustness gap.
 
-* **Event imbalance**: 768 dispatch steps vs 8 steps per auction gate per
-  episode — market decisions receive ~1% of gradient samples.
-* **Churn loop**: the policy accumulates ≈ +3.8M kEUR reward share at
-  IDC/auction events and loses ≈ −5.8M at dispatch/settlement: it trades
-  volume it cannot deliver, then pays imbalance. Credit assignment between
-  a gate action and its settlement many steps later is the core difficulty.
-* Feasibility projection rarely intervenes (0.1% of dispatch steps) — the
-  physical layer is not the bottleneck; the market action semantics are.
+## Tested and insufficient
 
-## Action-space variants (schema-versioned)
+All multi-seed, all recorded: direct-action PPO; target-position
+formulations under the uncorrected economics; PPO generally under the
+corrected economics; behavior-cloned initialization (twice — washes out
+during entropy-regularized fine-tuning); replay prefill and risk shaping
+(within seed noise); the median-action ensemble; disagreement gating
+beyond its random-fallback control. Pruned with stated reasons rather
+than disproven: extended training budgets, offline IQL/CQL, model-based
+methods (sample efficiency was demonstrably not the binding constraint),
+regime-aware retraining, and critic-weighted ensembles (Q-calibration
+across seeds not established).
 
-| Schema | Mode | Dims (1-day) | Semantics |
-|---|---|---|---|
-| act-v1 | `direct` | 103 | signed incremental MW per QH slot |
-| act-v2 | `target_position` | 103 | desired cumulative position per QH; translator trades the delta |
-| act-v3 | `hourly_target` | 28 | hourly target-position anchors broadcast to QHs |
-| act-v4 | `residual_hourly` | 28 | bounded correction (±`residual_scale_mw`) around the rule-based action; zero action ≡ rule-based (test-pinned) |
+## Outcome
 
-Target semantics make repeated identical intentions idempotent (no churn);
-the residual variant starts at rule-based performance by construction.
-
-## Experiment protocol
-
-* Registry: `experiments/registry.jsonl` — id, phase, git commit, schema
-  versions, algorithm, seed, budget, wall-clock, best-checkpoint validation
-  KPIs on the fixed day set, W&B run name = experiment id.
-* Phases: smoke → learnability (Level-1: DAA+BESS only, perfect forecasts —
-  RL must approach the deterministic optimum) → screening (30 fixed val
-  days) → tuning → multi-seed confirmation (full val split) → one locked
-  test evaluation for the final candidate.
-* Algorithms via a common adapter (`training/algorithms.py`): PPO,
-  RecurrentPPO, SAC, TQC, TD3 — identical envs, callbacks, evaluation.
-* Model selection always on true economic return (validation), never on
-  training reward and never on test data.
-
-## Status log
-
-* 2026-07-15: baseline recorded and stopped; action variants act-v2/3/4
-  implemented and test-pinned; Level-1 learnability (PPO/SAC) and Phase-2
-  screening (PPO×4 action modes, SAC/TQC on hourly/residual) launched.
+The promoted design — mean strategic action of five frozen SAC policies,
+bounded residual 0.1 around the rule-equivalent action, deterministic
+dispatch — achieves median-level parity with the information-equivalent
+MILP, eliminates seed-selection risk by construction, and tracks the
+rule-based reference within ±0.2% of mean revenue with a hard cap on
+daily losses. It does **not** demonstrate a mean-revenue advantage over
+the rule-based controller on unseen data; see
+[limitations](limitations.md).

@@ -51,6 +51,10 @@ class ExperimentSpec:
     overrides: dict[str, Any] = field(default_factory=dict)
     algo_kwargs: dict[str, Any] = field(default_factory=dict)
     notes: str = ""
+    #: overrides applied ONLY to the evaluation config (e.g. evaluate a
+    #: risk-shaped training run under the true economics). Empty = same
+    #: config for training and evaluation.
+    eval_overrides: dict[str, Any] = field(default_factory=dict)
 
 
 def _apply_overrides(raw: dict, overrides: dict[str, Any]) -> dict:
@@ -94,6 +98,9 @@ def build_config(spec: ExperimentSpec, base_config: Path) -> tuple[ExperimentCon
     out_dir.mkdir(parents=True, exist_ok=True)
     config_path = out_dir / f"{spec.experiment_id}.yaml"
     config_path.write_text(yaml.safe_dump(raw))
+    if spec.eval_overrides:
+        eval_raw = _apply_overrides(yaml.safe_load(config_path.read_text()), spec.eval_overrides)
+        (out_dir / f"{spec.experiment_id}-eval.yaml").write_text(yaml.safe_dump(eval_raw))
     return load_config(config_path), config_path
 
 
@@ -282,6 +289,34 @@ SPECS: list[ExperimentSpec] = [
         action_mode="residual_hourly",
         total_timesteps=200_000,
         n_envs=4,
+    ),
+    # ---- Tier 1 (advanced program): strategic actions and CrossQ
+    ExperimentSpec(
+        "S3-sac-strategic",
+        "screening",
+        algorithm="sac",
+        action_mode="strategic",
+        total_timesteps=120_000,
+        n_envs=4,
+        notes="Tier-1: 7-dim strategic actions, SAC",
+    ),
+    ExperimentSpec(
+        "S3-crossq-strategic",
+        "screening",
+        algorithm="crossq",
+        action_mode="strategic",
+        total_timesteps=120_000,
+        n_envs=4,
+        notes="Tier-1: CrossQ (SBX) on strategic actions",
+    ),
+    ExperimentSpec(
+        "S3-crossq-hourly",
+        "screening",
+        algorithm="crossq",
+        action_mode="hourly_target",
+        total_timesteps=200_000,
+        n_envs=4,
+        notes="Tier-1: CrossQ on hourly target-position actions",
     ),
 ]
 

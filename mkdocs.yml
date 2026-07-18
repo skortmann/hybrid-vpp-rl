@@ -66,8 +66,12 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - Data Audit: data_audit.md
   - Model & Markets: model.md
   - RL Environment & MDP: rl_environment.md
+  - Controllers: controllers.md
+  - Results: results.md
+  - Limitations: limitations.md
+  - Reproducibility: reproducibility.md
+  - Research Summary: rl_research.md
+  - Data Audit: data_audit.md
   - Synthetic Market Data: synthetic_market_data.md
-  - RL Research: rl_research.md
