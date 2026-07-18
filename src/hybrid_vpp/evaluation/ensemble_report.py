@@ -129,7 +129,7 @@ def main() -> None:
         "",
         "## Ensembles versus members (blocked validation)",
         "",
-        stats[show].round(0).to_markdown(),
+        stats[show].round({c: 2 if c == "p_beat_reference" else 0 for c in show}).to_markdown(),
         "",
         "An ensemble is one deterministic controller: it removes the seed-",
         "selection step entirely. Compare its row against the spread of the",
@@ -153,7 +153,7 @@ def main() -> None:
     REPORT_PATH.parent.mkdir(exist_ok=True)
     REPORT_PATH.write_text("\n".join(lines))
     print(f"wrote {REPORT_PATH}")
-    print(stats[show].round(0).to_string())
+    print(stats[show].round({c: 2 if c == "p_beat_reference" else 0 for c in show}).to_string())
     print(json.dumps(dis_summary, indent=1))
 
 

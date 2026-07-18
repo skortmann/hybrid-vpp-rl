@@ -1,0 +1,9 @@
+{
+  "spearman_u_vs_ensemble_regret": 0.11415933295316184,
+  "spearman_u_vs_member_mean_regret": 0.09282862999553042,
+  "spearman_u_vs_abs_deviation": -0.06644267373580137,
+  "mean_regret_high_disagreement": 261.8300869960127,
+  "mean_regret_low_disagreement": -13.544458919638007,
+  "p_negative_regret_high_u": 0.391304347826087,
+  "p_negative_regret_low_u": 0.5652173913043478
+}

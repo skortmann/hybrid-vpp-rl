@@ -66,3 +66,30 @@ same days: rule-based 55,511; info-MILP 55,260; do-nothing 52,726 EUR/day.
   test performance stays unknown until the Phase-8 locked confirmation.
 * Report: `reports/checkpoint_selection_analysis.md`; artifacts under
   `artifacts/robust_selection/`.
+
+## 2026-07-18 — Phase 2 complete: ensembles work, disagreement doesn't (RQ2: yes, H3: refuted)
+
+Four action-space ensembles of the five eval-best checkpoints, 92
+validation days:
+
+* **Every ensemble beats every individual member on mean revenue.** The
+  plain mean ensemble is best: 55,635 EUR/day (members 54,305–55,110),
+  median 56,916, mean regret vs rule-based **+124 EUR/day** (members:
+  −401 to −1,206), P(day beats rule-based) 0.52.
+* **Tail-risk collapse**: CVaR₁₀% of daily regret improves from
+  −6,374…−14,788 (members) to **−1,822** (mean ensemble); downside
+  exposure from 1,151–2,380 to **309 EUR/day**. Averaging in action
+  space cancels idiosyncratic per-seed mistakes on exactly the days
+  that used to produce five-figure losses.
+* Ranking: mean > trimmed-mean ≈ validation-weighted > median. The
+  LOBO-weighted variant does not beat the plain mean — member quality
+  differences are too small and weighting adds selection noise.
+* **H3 refuted**: disagreement does not predict poor ensemble days —
+  Spearman(u, daily regret) = **+0.11** (wrong sign for a safety
+  signal); high-disagreement days have *higher* mean regret (+262 vs
+  −14) and *lower* P(negative regret) (39% vs 57%). Per the plan's
+  precondition, disagreement-based Gates A/B lose their justification;
+  they are still evaluated for completeness, alongside the
+  disagreement-independent bounded-residual Gate C.
+* Report: `reports/ensemble_analysis.md`; `ensemble_results.json`,
+  `disagreement_analysis.json`, `ensemble_weights.json`.
