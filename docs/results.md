@@ -71,6 +71,33 @@ mean ensemble cut the tail risk (CVaR₁₀% of daily regret) from
 −6,374…−14,788 EUR (members) to −1,822, with the bounded residual
 reducing it further to −437.
 
+### Validation figures
+
+Rule-based, information-equivalent MILP, and the two RL composites on
+the same 92 days (regenerate with
+`uv run python -m hybrid_vpp.evaluation.robust_plots`):
+
+![Cumulative paired difference vs rule-based](assets/robust/val_cumulative_vs_rule_based.png)
+
+The cumulative view shows the controllers' characters: the MILP swings
+between +29 kEUR and −23 kEUR against rule-based — it wins ordinary days
+on point-forecast optimization and loses multiples of that on hard days —
+while the ungated ensemble ends +11 kEUR with one drawdown episode in
+December, and the promoted bounded variant accumulates +2.5 kEUR nearly
+monotonically.
+
+![Daily regret distribution vs rule-based](assets/robust/val_regret_distribution.png)
+
+The paired-regret distribution is the promotion argument in one figure:
+the MILP's daily regret spans −15.7 k to +25 kEUR, the ensemble
+compresses it to roughly ±5 kEUR, and the bounded residual to a band of
+a few hundred euros — with the median at or above zero for both RL
+composites.
+
+![Day-level pairing vs rule-based](assets/robust/val_scatter_vs_rule_based.png)
+
+![Rolling revenue of all controllers](assets/robust/val_rolling_revenue.png)
+
 ## Reading the result
 
 * **Median-level parity with the optimization benchmark**: median
