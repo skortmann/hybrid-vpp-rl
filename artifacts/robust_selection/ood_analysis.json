@@ -1,0 +1,16 @@
+{
+  "features": [
+    "daa_mean",
+    "daa_std",
+    "rebap_std",
+    "renewable_mwh",
+    "forecast_mae_mw"
+  ],
+  "n_train_days": 505,
+  "spearman_ood_vs_gate_regret": -0.05357335511613212,
+  "mean_regret_top_quartile_ood": -88.90195324738266,
+  "mean_regret_rest": 66.07086797539871,
+  "p_negative_regret_top_quartile_ood": 0.4782608695652174,
+  "p_negative_regret_rest": 0.42028985507246375,
+  "note": "day-level market-feature OOD; a safety/fallback signal candidate, not calibrated uncertainty"
+}

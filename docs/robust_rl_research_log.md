@@ -130,6 +130,88 @@ thresholds, plus two controls. Block bootstrap vs rule-based (92 days):
 * Reports: `failure_day_analysis.md`, `regime_analysis.md`;
   `artifacts/failure_days/`.
 
+## 2026-07-18 — Phase 6 complete: stronger MILPs confirm the promotion
+
+Turnover-penalized MILP (0.5/2 EUR/MWh churn penalty) improves the
+classic info-MILP (mean 55,304 vs 55,260; CVaR regret −4,508 vs −5,621);
+forecast derating (0.95/0.9) costs mean revenue. No MILP variant
+approaches the RL composites on mean (best MILP 55,304 vs gate 55,538 /
+ensemble 55,635) or tail (CVaR −4,438 at best vs −437 for the gate).
+Notably the MILPs hold much *higher medians* (~58.2k): they win normal
+days and lose hard on bad days. The RL composite's advantage is
+robustness, not median-day optimization. Report:
+`reports/robust_milp_analysis.md`.
+
+## 2026-07-18 — OOD signal (§19): weak, not promoted
+
+Mahalanobis distance of validation days from the 505-day training
+feature distribution (price level/volatility, reBAP volatility,
+renewable level, forecast error): Spearman vs the promoted controller's
+daily regret **−0.05**; top-quartile-OOD days average −89 EUR/day regret
+vs +66 for the rest (mean-level only, not rank-consistent). Recorded as
+a candidate fallback trigger, not adopted. Artifact:
+`artifacts/robust_selection/ood_analysis.json`.
+
+## 2026-07-18 — Phase 7 complete: zero-shot robustness confirmed (RQ6: yes, with one boundary)
+
+Locked candidate vs rule-based, zero-shot (trained on base config), 92
+validation days per scenario:
+
+* Grid export limit ×0.8 / ×1.2: **+23 / +24 EUR/day**
+* BESS energy ×0.5 / ×2: **+36 / +27 EUR/day**
+* Forecast quality — persistence (degraded): **+33**; perfect: −17
+  (with perfect foresight the rule-based plan is already optimal-ish and
+  RL corrections have nothing to add).
+* Deviation-penalty sweep 0→100 EUR/MWh (analytic, exact): the candidate
+  stays ahead of rule-based at every penalty (identical deviation
+  profiles, 37.8 vs 37.6 MWh/day — deterministic dispatch pins the
+  deviation behavior). **Boundary**: at 100 EUR/MWh the info-MILP's
+  low-deviation profile (21.8 MWh/day) overtakes all trading-heavy
+  controllers (53,622 vs 52,703). The promotion claim is calibrated to
+  the 25 EUR/MWh compliance regime; high-penalty regimes would require
+  retraining (pruned this phase).
+* Artifact: `artifacts/robust_selection/sensitivity_results.json`.
+
+## 2026-07-18 — Phase 8 protocol (pre-registered before any test contact)
+
+* Candidate (locked in Phase 3): `gate_c_r0.1` — mean-action ensemble of
+  the five frozen eval-best checkpoints, per-dimension bounded residual
+  0.1 around the rule-equivalent action (no calibration parameters),
+  deterministic rule-based dispatch, env-v2 economics.
+* One deterministic pass over all 98 reused test days
+  (2026-02-01 → 2026-05-09). No reruns, no parameter changes after the
+  read-out, regardless of outcome.
+* Statistics: paired daily differences vs the *recorded* rule-based
+  test series (`artifacts/test_evaluation.json`); moving-block bootstrap
+  (block length 7, 10,000 draws); report mean, median, CI95,
+  P(outperform), CVaR₁₀% regret, downside exposure, max daily loss, and
+  the median info-gap vs the recorded info-MILP.
+* The test split was examined by the previous phase: results are
+  reported as a **reused-test confirmation**, not an untouched-test
+  claim.
+
+## 2026-07-18 — Phase 8 read-out and terminal state: `ENSEMBLE_SUCCESS`
+
+One deterministic pass of the locked candidate over the 98 reused test
+days, exactly as pre-registered:
+
+* mean 46,767 / median 48,517 EUR/day (rule-based 46,850 / 48,464;
+  info-MILP 47,599 / 49,294); median info-gap **+0.58%**.
+* Paired vs rule-based: **−83 EUR/day, CI95 [−155, −30]**, CVaR₁₀%
+  regret −569, downside exposure 141, **max daily loss 847 EUR**.
+* Reliability vs the previous procedure on the same days: paired-CI
+  width 125 EUR/day (was 5,752 pooled; the old validation-chosen seed
+  landed at −6,114); worst daily loss 847 EUR (was five-figure); no
+  seed selection anywhere in the loop.
+* Honest boundary: the +27 EUR/day validation edge (P 91%) inverted to
+  −83 under the winter→spring shift — the bound caps both tails; its
+  insurance costs ~0.2% of revenue on this window.
+
+Terminal state **ENSEMBLE_SUCCESS** (per the phase plan: no new
+training; robustness materially improved; selection no longer depends
+on one favorable seed; confirmed across temporal folds). Final report:
+`reports/final_robust_rl_results.md`.
+
 ## 2026-07-18 — Phase 5 (retraining) formally pruned
 
 ENSEMBLE_SUCCESS conditions are already met on validation by an

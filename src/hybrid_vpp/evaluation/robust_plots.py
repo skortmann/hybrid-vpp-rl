@@ -43,7 +43,7 @@ def plot_fold_performance() -> None:
     ckpt = folds[folds.candidate.str.startswith("ckpt_")]
     rb = folds[folds.candidate == "baseline_rule_based"].set_index("fold")["mean"]
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    for cand, sub in ckpt.groupby("candidate"):
+    for _cand, sub in ckpt.groupby("candidate"):
         ax.plot(sub["fold"], sub["mean"], color="steelblue", alpha=0.25, lw=1)
     ax.plot(rb.index, rb.values, color="black", lw=2, label="rule-based")
     milp = folds[folds.candidate == "baseline_milp_info"].set_index("fold")["mean"]
