@@ -32,6 +32,18 @@ mattered far less than action semantics and architecture: under identical
 economics on the strategic space, off-policy algorithms landed within
 ~1–2k EUR/day of each other, while PPO was consistently weakest.
 
+A sixth formulation (`act-v6`, `strategic_residual`) extends the
+strategic space after the main study: a low-rank quarter-hour market
+residual — one anchor and one zero-mean intra-hour tilt per hour anchor,
+57 dims for one-day episodes — restores intra-hour degrees of freedom on
+the always-quarter-hourly IDA/IDC products (and day-ahead after the
+2025-10-01 MTU switch) and lets the policy trade products the rule-based
+baseline leaves untouched, while dispatch stays with the deterministic
+tracker. Zero residuals reproduce `act-v5` exactly and mid-range values
+reproduce the rule-based controller (both test-pinned); its screening
+follows the same fixed-validation-day protocol. See the
+[environment page](rl_environment.md) for the full translation semantics.
+
 ## Validity findings
 
 Under the original economics, expressive policies exceeded the
