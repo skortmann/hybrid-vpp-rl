@@ -8,10 +8,10 @@ of each module; there are no command-line flags.
 ## Environments
 
 ```bash
-uv sync                    # minimal: synthetic data, rule-based simulation, evaluation
-uv sync --extra rl         # + training / loading released checkpoints
-uv sync --extra optimization   # + MILP benchmark (HiGHS)
-uv sync --group dev        # everything the test suite and docs need
+uv sync                        # developer default (dev group): tests, benchmark, RL
+uv sync --no-dev               # minimal: synthetic data, rule-based simulation, evaluation
+uv sync --no-dev --extra rl    # minimal + training / loading released checkpoints
+uv sync --no-dev --extra optimization   # minimal + MILP benchmark (HiGHS)
 ```
 
 ## Regenerating the published tables

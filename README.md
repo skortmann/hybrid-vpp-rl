@@ -87,10 +87,10 @@ Requires Python ≥ 3.12 and [uv](https://github.com/astral-sh/uv).
 ```bash
 git clone https://github.com/skortmann/hybrid-vpp-rl
 cd hybrid-vpp-rl
-uv sync                  # minimal: synthetic data + simulation + evaluation
-uv sync --extra rl       # + RL training and released-checkpoint loading
-uv sync --extra optimization   # + MILP benchmark (HiGHS)
-uv sync --group dev      # everything (tests, docs, benchmark, RL)
+uv sync                        # developer default: tests, benchmark, RL
+uv sync --no-dev               # minimal: synthetic data + simulation + evaluation
+uv sync --no-dev --extra rl    # minimal + RL training / released checkpoints
+uv sync --no-dev --extra optimization   # minimal + MILP benchmark (HiGHS)
 ```
 
 ## Quick start (no private data required)
