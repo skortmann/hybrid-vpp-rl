@@ -68,6 +68,7 @@ nav:
   - Home: index.md
   - Model & Markets: model.md
   - RL Environment & MDP: rl_environment.md
+  - State & Action Example Day: state_action_example_day.md
   - Controllers: controllers.md
   - Results: results.md
   - Limitations: limitations.md

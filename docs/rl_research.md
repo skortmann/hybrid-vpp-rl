@@ -98,9 +98,12 @@ across seeds not established).
 
 The promoted design — mean strategic action of five frozen SAC policies,
 bounded residual 0.1 around the rule-equivalent action, deterministic
-dispatch — achieves median-level parity with the information-equivalent
-MILP, eliminates seed-selection risk by construction, and tracks the
+dispatch — eliminates seed-selection risk by construction and tracks the
 rule-based reference within ±0.2% of mean revenue with a hard cap on
-daily losses. It does **not** demonstrate a mean-revenue advantage over
-the rule-based controller on unseen data; see
+daily losses. Under honest end-of-day economics it trails the
+information-equivalent MILP by ≈2% (validation) to ≈5% (reused test); the
+raw-metric "median-level parity" reported during the study was inflated by
+an unpriced daily SoC-reset subsidy (see the terminal-adjusted re-pricing
+in [results](results.md)). It does **not** demonstrate a mean-revenue
+advantage over the rule-based controller on unseen data; see
 [limitations](limitations.md).
