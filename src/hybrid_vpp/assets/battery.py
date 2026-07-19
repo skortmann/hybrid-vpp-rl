@@ -51,8 +51,11 @@ class Battery:
     def soc(self) -> float:
         return self.energy_mwh / self.capacity_mwh
 
-    def reset(self) -> None:
-        self.energy_mwh = self.cfg.soc_initial * self.capacity_mwh
+    def reset(self, initial_soc: float | None = None) -> None:
+        """Reset to ``soc_initial``, or to an explicit carried-over SoC."""
+        soc = self.cfg.soc_initial if initial_soc is None else initial_soc
+        soc = min(max(soc, self.cfg.soc_min), self.cfg.soc_max)
+        self.energy_mwh = soc * self.capacity_mwh
         self.total_throughput_mwh = 0.0
 
     def _decayed_energy(self, duration: timedelta) -> float:

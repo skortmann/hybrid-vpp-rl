@@ -27,6 +27,16 @@ VARIANTS = (
     {"name": "milp_turnover2", "turnover_penalty_eur_per_mwh": 2.0},
     {"name": "milp_derate0.95", "renewable_derate": 0.95},
     {"name": "milp_derate0.9", "renewable_derate": 0.9},
+    # symmetric benchmark for the terminal-adjusted economics: no forced
+    # end-of-day SoC, boundary priced by the adjusted metric instead
+    {"name": "milp_no_terminal", "enforce_terminal_soc": False},
+    # carry-over-compatible benchmark: terminal inventory valued at the
+    # solve's own mean forecast price instead of constrained or free
+    {
+        "name": "milp_terminal_value",
+        "enforce_terminal_soc": False,
+        "terminal_value_from_prices": True,
+    },
 )
 CACHE_DIR = Path("artifacts/robust_selection/cache")
 REPORT_PATH = Path("reports/robust_milp_analysis.md")

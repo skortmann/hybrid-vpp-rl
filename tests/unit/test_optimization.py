@@ -129,3 +129,34 @@ def test_terminal_soc_enforced():
     )
     net_mwh = -(sol.bess_mw * 0.25).sum()  # positive = net charged
     assert net_mwh >= -1e-6  # cannot end below the terminal requirement
+
+
+def test_terminal_soc_optional():
+    """Without a terminal requirement the same setup drains the battery."""
+    cfg = make_cfg()
+    n = 4
+    prices = np.full(n, 100.0)
+    ctrl = OptimizationController(cfg, None, None, enforce_terminal_soc=False)
+    sol = ctrl.solve_schedule(
+        times(n), np.zeros(n), np.zeros(n), prices, soc0_mwh=5.0, terminal_mwh=None
+    )
+    net_mwh = -(sol.bess_mw * 0.25).sum()
+    assert net_mwh < -1e-6  # net discharged: the boundary energy is sold
+
+
+def test_terminal_value_retains_inventory():
+    """A terminal inventory value above prices makes the plan charge, not drain."""
+    cfg = make_cfg()
+    n = 4
+    prices = np.full(n, 10.0)  # cheap hours; inventory is worth 100 at day end
+    sol = controller(cfg).solve_schedule(
+        times(n),
+        np.zeros(n),
+        np.zeros(n),
+        prices,
+        soc0_mwh=5.0,
+        terminal_mwh=None,
+        terminal_value_eur_per_mwh=100.0,
+    )
+    net_mwh = -(sol.bess_mw * 0.25).sum()
+    assert net_mwh > 1e-6  # net charged: buy cheap, carry the energy over

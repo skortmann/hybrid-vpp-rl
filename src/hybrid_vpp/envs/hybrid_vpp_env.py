@@ -111,6 +111,7 @@ class HybridVppEnv(gym.Env):
         if not len(self.valid_days):
             raise ValueError(f"no valid episode days in split {split!r}")
         self._day_cursor = 0
+        self._episodes_run = 0
         self._event: MarketEvent | None = None
 
     # ------------------------------------------------------------------ days
@@ -154,7 +155,17 @@ class HybridVppEnv(gym.Env):
         else:
             day = self.valid_days[self.np_random.integers(len(self.valid_days))]
 
-        self._event = self.sim.start_episode(day, days=self.cfg.episode.days)
+        # explicit override > carry-over > randomized range > soc_initial
+        initial_soc = options.get("initial_soc")
+        if initial_soc is None and self.cfg.episode.carry_over_soc and self._episodes_run > 0:
+            initial_soc = self.sim.battery.soc  # previous episode's final SoC
+        if initial_soc is None and self.cfg.episode.initial_soc_range is not None:
+            lo, hi = self.cfg.episode.initial_soc_range
+            initial_soc = float(self.np_random.uniform(lo, hi))
+        self._event = self.sim.start_episode(
+            day, days=self.cfg.episode.days, initial_soc=initial_soc
+        )
+        self._episodes_run += 1
         window_start = local_day_bounds_utc(day)[0]
         self.obs_builder.start_episode(window_start)
         self._window_start = window_start
@@ -228,8 +239,9 @@ class HybridVppEnv(gym.Env):
             self._episode_day + pd.Timedelta(days=self.cfg.episode.days - 1)
         )
         mean_price = float(self._daa_prices.loc[w0:w1].mean())
-        e0 = self.cfg.site.battery.soc_initial * self.cfg.site.battery.energy_capacity_mwh
-        return (self.sim.battery.energy_mwh - e0) * mean_price
+        # actual start energy: equals soc_initial·capacity unless the episode
+        # was started with a carried-over SoC
+        return (self.sim.battery.energy_mwh - self.sim.episode_start_energy_mwh) * mean_price
 
     def _info(self, event: MarketEvent) -> dict[str, Any]:
         return {

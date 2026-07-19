@@ -100,6 +100,13 @@ class OptimizationController:
     turnover_penalty_eur_per_mwh: float = 0.0
     #: multiplicative derating of renewable forecasts (robust variant; 1 = trust)
     renewable_derate: float = 1.0
+    #: benchmark variant: drop the end-of-day SoC constraint (pair with the
+    #: terminal-adjusted revenue metric, which prices the boundary instead)
+    enforce_terminal_soc: bool = True
+    #: value terminal inventory at the mean of the solve's own forecast
+    #: prices (information-equivalent) — the carry-over-compatible objective:
+    #: without it and without the constraint, the optimum drains by day end
+    terminal_value_from_prices: bool = False
     _plan_export: dict[pd.Timestamp, float] = field(default_factory=dict)
     _plan_bess: dict[pd.Timestamp, float] = field(default_factory=dict)
 
@@ -118,6 +125,7 @@ class OptimizationController:
         soc0_mwh: float,
         terminal_mwh: float | None,
         anchor_export_mw: np.ndarray | None = None,
+        terminal_value_eur_per_mwh: float | None = None,
     ) -> ScheduleSolution:
         """Build and solve the schedule MILP (backend per ``self.solver``)."""
         bat = self.cfg.site.battery
@@ -162,6 +170,12 @@ class OptimizationController:
             price_h = h * float(prices[t])
             objective += price_h * (dis[t] - ch[t] - cw[t] - cpv[t])
             objective -= (c_deg * h) * (ch[t] + dis[t])
+        if terminal_value_eur_per_mwh is not None:
+            # value the terminal inventory change (E_T − E_0): lets the plan
+            # trade off selling now against carrying energy into the next day
+            v = float(terminal_value_eur_per_mwh)
+            objective += v * soc
+            objective -= v * soc0_mwh
         if self.turnover_penalty_eur_per_mwh > 0 and anchor_export_mw is not None:
             c_turn = self.turnover_penalty_eur_per_mwh * h
             for t in range(n):
@@ -213,10 +227,15 @@ class OptimizationController:
             soc0_mwh=sim.battery.energy_mwh,
             terminal_mwh=(
                 bat.soc_terminal_target * bat.energy_capacity_mwh
-                if bat.soc_terminal_target is not None
+                if self.enforce_terminal_soc and bat.soc_terminal_target is not None
                 else None
             ),
             anchor_export_mw=anchor,
+            terminal_value_eur_per_mwh=(
+                float(np.mean(price_qh.to_numpy(float)))
+                if self.terminal_value_from_prices
+                else None
+            ),
         )
         self._plan_export.update(solution.export_mw.to_dict())
         self._plan_bess.update(solution.bess_mw.to_dict())

@@ -107,14 +107,20 @@ def build_config(spec: ExperimentSpec, base_config: Path) -> tuple[ExperimentCon
 def evaluate_checkpoint(
     config_path: Path, model_path: Path, days: pd.DatetimeIndex
 ) -> dict[str, float]:
-    """Deterministic evaluation of a checkpoint on fixed days (val split)."""
+    """Deterministic evaluation of a checkpoint on fixed days (val split).
+
+    ``initial_soc_range`` is a training-only exploration device and is
+    cleared here so screening is reproducible; ``carry_over_soc`` (if set)
+    still chains the days deterministically from ``soc_initial``.
+    """
     from hybrid_vpp.envs.hybrid_vpp_env import HybridVppEnv
     from hybrid_vpp.training.algorithms import algo_class
 
     cfg = load_config(config_path)
+    cfg.episode.initial_soc_range = None
     model = algo_class(cfg.training.algorithm).load(model_path)
     env = HybridVppEnv(cfg, split="val")
-    revenues, corrections = [], []
+    revenues, adjusted, corrections = [], [], []
     for day in days:
         obs, info = env.reset(options={"day": day})
         done = False
@@ -123,16 +129,21 @@ def evaluate_checkpoint(
             obs, _, done, _, info = env.step(action)
         m = info["episode_metrics"]
         revenues.append(m["total_net_revenue_eur"])
+        adjusted.append(m["total_net_revenue_terminal_adjusted_eur"])
         corrections.append(m["corrected_dispatch_intervals"])
     revenue = np.asarray(revenues)
+    adj = np.asarray(adjusted)
     return {
         "days": len(days),
         "mean_revenue_eur": float(revenue.mean()),
         "median_revenue_eur": float(np.median(revenue)),
         "std_revenue_eur": float(revenue.std()),
         "total_revenue_eur": float(revenue.sum()),
+        "mean_revenue_terminal_adjusted_eur": float(adj.mean()),
+        "median_revenue_terminal_adjusted_eur": float(np.median(adj)),
         "mean_corrected_intervals": float(np.mean(corrections)),
         "per_day_revenue_eur": [float(v) for v in revenue],
+        "per_day_revenue_terminal_adjusted_eur": [float(v) for v in adj],
     }
 
 
@@ -163,7 +174,11 @@ def run_experiment(spec: ExperimentSpec, base_config: Path = Path("configs/defau
         "phase": spec.phase,
         "timestamp": datetime.now().astimezone().isoformat(),
         "git_commit": _git_commit(),
-        "environment_version": "env-v1",
+        "environment_version": (
+            "env-v1"
+            + ("+soc-carryover" if cfg.episode.carry_over_soc else "")
+            + ("+soc-randomized" if cfg.episode.initial_soc_range is not None else "")
+        ),
         "action_schema": ACTION_SCHEMA_VERSIONS[spec.action_mode],
         "algorithm": spec.algorithm,
         "action_mode": spec.action_mode,
@@ -341,6 +356,34 @@ SPECS: list[ExperimentSpec] = [
             ),
         )
         for seed in (0, 1, 2)
+    ],
+    # ---- V9: carry-over operating regime — the V6-hybrid recipe retrained
+    # with chained battery state and randomized day-start SoC (full coverage
+    # of auction-gate states); tagged env-v1+soc-carryover+soc-randomized
+    *[
+        ExperimentSpec(
+            f"V9-carryover-sac-seed{seed}",
+            "screening",
+            algorithm="sac",
+            action_mode="strategic",
+            total_timesteps=300_000,
+            seed=seed,
+            n_envs=4,
+            overrides={
+                "episode.strategic_fixed_dispatch": True,
+                "episode.strategic_gain_max": 1.25,
+                "episode.carry_over_soc": True,
+                "episode.initial_soc_range": [0.05, 0.95],
+                "markets.imbalance.deviation_penalty_eur_per_mwh": 25.0,
+            },
+            algo_kwargs={"ent_coef": 0.005, "gradient_steps": 2, "learning_starts": 10_000},
+            notes=(
+                "V9: V6-hybrid recipe under the carry-over regime "
+                "(chained SoC + randomized day-start SoC); screening evaluation "
+                "chains the fixed validation days in order"
+            ),
+        )
+        for seed in (0, 1, 2, 3, 4)
     ],
 ]
 

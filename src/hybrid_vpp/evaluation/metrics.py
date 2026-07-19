@@ -44,9 +44,19 @@ def episode_metrics(sim: Simulator) -> dict[str, float]:
 
     market_revenue = sum(ledger[m] for m in ("daa", "ida1", "ida2", "ida3", "idc"))
     total = sim.ledger.total()
+    # boundary valuation: residual stored energy vs the episode's actual
+    # start fill (soc_initial, or a carried-over SoC), valued at the
+    # episode's mean day-ahead price (the same rule the RL reward applies at
+    # termination). The raw ledger total leaves the SoC boundary unpriced;
+    # the adjusted total corrects for it.
+    terminal_value = (
+        sim.battery.energy_mwh - sim.episode_start_energy_mwh
+    ) * sim.episode_mean_daa_price_eur_mwh()
     return {
         # economics
         "total_net_revenue_eur": total,
+        "terminal_energy_value_eur": terminal_value,
+        "total_net_revenue_terminal_adjusted_eur": total + terminal_value,
         "daa_revenue_eur": ledger["daa"],
         "ida1_revenue_eur": ledger["ida1"],
         "ida2_revenue_eur": ledger["ida2"],

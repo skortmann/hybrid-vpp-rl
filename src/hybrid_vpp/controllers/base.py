@@ -29,11 +29,12 @@ def run_episode(
     controller: Controller,
     first_delivery_day: pd.Timestamp | str,
     days: int = 1,
+    initial_soc: float | None = None,
 ) -> list[StepResult]:
     """Run one full episode under a controller; returns all step results."""
     controller.reset()
     results: list[StepResult] = []
-    event = sim.start_episode(pd.Timestamp(first_delivery_day), days=days)
+    event = sim.start_episode(pd.Timestamp(first_delivery_day), days=days, initial_soc=initial_soc)
     while event is not None:
         action = controller.act(event, sim)
         result, event = sim.step(action)

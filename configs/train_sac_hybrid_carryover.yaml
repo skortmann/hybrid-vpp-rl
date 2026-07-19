@@ -1,0 +1,81 @@
+# Carry-over training recipe: the promoted SAC/strategic/fixed-dispatch
+# configuration retrained for the carry-over operating regime.
+#
+# Two changes versus configs/train_sac_hybrid.yaml:
+#   * episode.initial_soc_range randomizes the day-start SoC, so auction-gate
+#     observations cover the full SoC window during training (the daily-reset
+#     recipe only ever saw SoC = soc_initial at the DAA gate);
+#   * episode.carry_over_soc chains the battery state across episodes on top,
+#     so training also sees the policy-induced start-state distribution.
+# The terminal reward values residual energy against the actual start fill,
+# so the objective stays consistent under both. Registry records tag these
+# runs as env-v1+soc-carryover+soc-randomized — never compare them against
+# daily-reset checkpoints without saying so.
+#
+#   uv run python -m hybrid_vpp.training.train        # reads CONFIG_PATH
+#
+# Evaluate chained: hybrid_vpp.evaluation.carry_over_eval (contiguous
+# horizons) plus the terminal-adjusted metric for day-wise screening.
+
+episode:
+  action_mode: strategic
+  strategic_gain_max: 1.25
+  strategic_fixed_dispatch: true
+  carry_over_soc: true
+  initial_soc_range: [0.05, 0.95]
+
+markets:
+  imbalance:
+    model: rebap
+    deviation_penalty_eur_per_mwh: 25.0
+
+training:
+  algorithm: sac
+  seed: 0
+  total_timesteps: 300000
+  n_envs: 4
+  eval_freq: 50000
+  algo_kwargs:
+    ent_coef: 0.005
+    gradient_steps: 2
+    learning_starts: 10000
+
+site:
+  battery:
+    charge_efficiency: 0.95
+    charge_power_mw: 30.0
+    degradation_cost_eur_per_mwh_throughput: 1.5
+    discharge_efficiency: 0.95
+    discharge_power_mw: 30.0
+    energy_capacity_mwh: 60.0
+    soc_initial: 0.5
+    soc_max: 0.95
+    soc_min: 0.05
+    soc_terminal_target: 0.5
+  curtailment_cost_eur_per_mwh: 0.0
+  grid:
+    allow_grid_import: true
+    congestion_resolution:
+      mode: optimization
+      weights:
+        bess_deviation: 1.0
+        pv_curtailment: 10.0
+        wind_curtailment: 10.0
+    export_limit_mw: 100.0
+    import_limit_mw: 30.0
+  name: hybrid-park-de
+  pv:
+    azimuth_deg: 180.0
+    capacity_mw: 50.0
+    latitude: 53.4
+    longitude: 8.1
+    system_loss: 0.1
+    tilt_deg: 35.0
+    tracking: 0
+  wind:
+    capacity_mw: 70.0
+    hub_height_m: 100.0
+    latitude: 53.4
+    longitude: 8.1
+    offshore: false
+    turbine_model: Vestas V112 3000

@@ -34,6 +34,26 @@ An episode over one regular day yields 132 decision steps: 1 DAA gate,
 on DST days — the calendar is DST-exact and no day is assumed to have 96
 quarter-hours).
 
+By default each episode resets the battery to `soc_initial`. With
+`episode.carry_over_soc: true` the final SoC of one episode becomes the
+next episode's starting SoC (an explicit `options={"initial_soc": ...}`
+on `reset()` always wins), and `run_episode`/`Simulator.start_episode`
+accept the same override — the physically faithful mode for consecutive
+days. `episode.initial_soc_range: [lo, hi]` instead samples the starting
+SoC uniformly at reset: under the daily-reset protocol the day-ahead gate
+is the episode's first event, so policies otherwise only ever observe
+`soc_initial` there — the range gives training full coverage of day-start
+states (it also seeds the first episode and gap restarts under
+carry-over). `evaluation/carry_over_eval.py` replays contiguous horizons
+with chained state, breaking the chain (with a note) at days missing from
+the split. Registry records tag such training runs
+(`env-v1+soc-carryover`, `+soc-randomized`); the carry-over retraining
+recipe is `configs/train_sac_hybrid_carryover.yaml`. For the MILP
+benchmark under carry-over, `terminal_value_from_prices` values terminal
+inventory at the solve's own mean forecast price (variant
+`milp_terminal_value`) — without either that or the terminal constraint,
+a rolling optimizer drains the battery by day end.
+
 ### MDP definition
 
 The problem is formulated as an event-indexed, partially observable MDP
@@ -333,6 +353,22 @@ Order-level execution outcomes are surfaced in `info` each step
 (`orders_submitted`, `orders_capped`, `orders_rejected`, `capped_mw`), so
 volume-capped or rejected market orders are observable to training and
 diagnostics rather than silently absorbed by the execution layer.
+
+**Boundary valuation in evaluation.** Because 1-day episodes reset the
+battery to `soc_initial` at each start, the raw ledger total leaves the
+end-of-day stored energy unpriced — a controller that drains the battery
+receives a free refill the next day (measured at ~+0.8–1.0k EUR/day for
+the RL and rule-based controllers on validation). Evaluation therefore
+reports, alongside the raw `total_net_revenue_eur`, a
+`total_net_revenue_terminal_adjusted_eur` that adds
+`terminal_energy_value_eur` — the residual stored energy relative to the
+episode-start fill, valued at the episode's mean day-ahead price. This is
+the same rule the training reward applies at termination, so the adjusted
+metric scores exactly the objective policies were trained on. The raw
+metric is retained for comparability with earlier (legacy) results. For a
+symmetric benchmark, the MILP can be run without its end-of-day SoC
+constraint (`OptimizationController(enforce_terminal_soc=False)`, variant
+`milp_no_terminal`).
 
 Model selection always uses the **true unshaped economic return** on
 validation days; any future shaping experiments must report both shaped and

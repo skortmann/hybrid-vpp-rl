@@ -132,6 +132,7 @@ class Simulator:
         self.ledger = Ledger()
         self.events: list[MarketEvent] = []
         self.cursor = 0
+        self.episode_start_energy_mwh = self.battery.energy_mwh
         self.dispatch_records: dict[pd.Timestamp, DispatchRecord] = {}
         self.settlements: dict[pd.Timestamp, SettlementResult] = {}
         self.delivery_days: list[pd.Timestamp] = []
@@ -146,18 +147,36 @@ class Simulator:
 
     # ----------------------------------------------------------- episode API
 
-    def start_episode(self, first_delivery_day: pd.Timestamp, days: int = 1) -> MarketEvent:
-        """Reset state and return the first decision event."""
+    def start_episode(
+        self,
+        first_delivery_day: pd.Timestamp,
+        days: int = 1,
+        initial_soc: float | None = None,
+    ) -> MarketEvent:
+        """Reset state and return the first decision event.
+
+        ``initial_soc`` overrides the configured ``soc_initial`` (clamped to
+        the SoC window) — used to carry the battery state across episodes.
+        """
         day0 = pd.Timestamp(first_delivery_day).normalize()
         self.delivery_days = [day0 + pd.Timedelta(days=i) for i in range(days)]
         self.events = self.calendar.episode_events(self.delivery_days)
         self.cursor = 0
         self.book = PositionBook()
         self.ledger = Ledger()
-        self.battery.reset()
+        self.battery.reset(initial_soc)
+        self.episode_start_energy_mwh = self.battery.energy_mwh
         self.dispatch_records = {}
         self.settlements = {}
         return self._advance_to_decision()
+
+    def episode_mean_daa_price_eur_mwh(self) -> float:
+        """Mean day-ahead price over the current episode's delivery window."""
+        if not self.dispatch_records:
+            return 0.0
+        w0, w1 = min(self.dispatch_records), max(self.dispatch_records)
+        prices = self._auction_prices["daa"].loc[w0:w1]
+        return float(prices.mean()) if len(prices) else 0.0
 
     @property
     def current_event(self) -> MarketEvent | None:

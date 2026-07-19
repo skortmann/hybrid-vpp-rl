@@ -45,6 +45,20 @@ claim. A genuinely untouched claim requires post-May-2026 data.
   overtakes all trading-heavier controllers.
 * **reBAP settlement is single-price and historical**; the price-taker
   assumption also applies to imbalance volumes.
+* **Daily SoC reset.** Episodes are single days and the battery restarts
+  at 50% SoC, so the raw ledger metric leaves end-of-day stored energy
+  unpriced — a free refill worth about +0.8k EUR/day for the promoted-seed
+  RL controller and +1.0k EUR/day for rule-based on validation, while the
+  MILP alone was terminal-constrained and received no such subsidy. The
+  headline tables use the raw metric (legacy); a terminal-adjusted revenue
+  (`total_net_revenue_terminal_adjusted_eur`, same boundary valuation the
+  training reward already used) is now reported alongside it, and a
+  symmetric unconstrained MILP variant (`milp_no_terminal`) exists for
+  like-for-like comparison. The adjustment shifts RL/rule-based revenues
+  down by roughly 2% and does not change the promoted design. True
+  carry-over of the battery state across days is available as an opt-in
+  (`episode.carry_over_soc`, plus a chained-horizon evaluator); the
+  published results predate it and use the daily-reset protocol.
 
 ## Data and forecast simplifications
 

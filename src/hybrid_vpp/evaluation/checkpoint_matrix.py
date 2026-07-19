@@ -52,6 +52,8 @@ def _cache_path(name: str, split: str) -> Path:
 
 METRIC_KEYS = (
     "total_net_revenue_eur",
+    "terminal_energy_value_eur",
+    "total_net_revenue_terminal_adjusted_eur",
     "market_revenue_eur",
     "imbalance_cash_eur",
     "abs_deviation_mwh",

@@ -400,6 +400,14 @@ class EpisodeConfig(BaseModel):
     """One episode = `days` consecutive local delivery days."""
 
     days: int = Field(default=1, ge=1)
+    #: carry the battery SoC from one episode into the next instead of
+    #: resetting to ``soc_initial`` (physically faithful on contiguous days;
+    #: an explicit ``options={"initial_soc": ...}`` on reset always wins)
+    carry_over_soc: bool = False
+    #: sample the starting SoC uniformly from this range at reset (training
+    #: exposure to arbitrary day-start states; clamped to the SoC window).
+    #: With ``carry_over_soc`` it seeds the first episode and gap restarts.
+    initial_soc_range: tuple[float, float] | None = None
     #: penalty applied by the env for requested-but-infeasible actions, EUR/MWh
     infeasibility_penalty_eur_per_mwh: float = Field(default=0.0, ge=0)
     #: action formulation (see hybrid_vpp.envs.actions for schema docs)
@@ -422,6 +430,13 @@ class EpisodeConfig(BaseModel):
     #: hybrid H4: dispatch follows the deterministic rule-based controller
     #: exactly (RL controls only market decisions; dispatch dims are inert)
     strategic_fixed_dispatch: bool = False
+
+    @field_validator("initial_soc_range")
+    @classmethod
+    def _check_soc_range(cls, v: tuple[float, float] | None) -> tuple[float, float] | None:
+        if v is not None and not (0.0 <= v[0] <= v[1] <= 1.0):
+            raise ValueError("initial_soc_range must satisfy 0 <= lo <= hi <= 1")
+        return v
 
 
 class TrainingConfig(BaseModel):

@@ -78,6 +78,7 @@ N_DAYS = 14
 CONTROLLERS = ("rule_based", "do_nothing")
 SUMMARY_COLUMNS = [
     "total_net_revenue_eur",
+    "total_net_revenue_terminal_adjusted_eur",
     "market_revenue_eur",
     "imbalance_cash_eur",
     "abs_deviation_mwh",
