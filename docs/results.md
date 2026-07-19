@@ -15,6 +15,14 @@ The complete narrative, including all negative results, is in
 [`reports/final_study_report.md`](https://github.com/skortmann/hybrid-vpp-rl/blob/v0.2.0/reports/final_study_report.md)
 (preserved at tag `v0.2.0`).
 
+The tables below report the **raw ledger** revenue (the metric behind the
+`v0.2.0` pre-registered read-outs). Single-day episodes reset the battery
+to `soc_initial`, so this metric leaves end-of-day stored energy unpriced —
+a controller that drains the battery gets a free refill the next day. The
+[terminal-adjusted re-pricing](#terminal-adjusted-re-pricing) below removes
+that subsidy and revises the benchmark comparison accordingly; the
+raw tables are retained unchanged as the historical record.
+
 ## Data splits
 
 Chronological, from the 696-day window in which all five markets, reBAP,
@@ -100,16 +108,60 @@ composites.
 
 ![Rolling revenue of all controllers](assets/robust/val_rolling_revenue.png)
 
+## Terminal-adjusted re-pricing
+
+The raw tables above price a drained battery at zero at the daily boundary.
+Re-pricing the residual stored energy at the episode's mean day-ahead price
+(`total_net_revenue_terminal_adjusted_eur` — the same valuation the training
+reward already used) removes the reset subsidy. This is a re-pricing of the
+frozen, pre-registered checkpoints, not a re-selection; the raw figures above
+reproduce exactly. The information-equivalent MILP is shown both as
+originally run (`constrained`, end-of-day SoC forced back to 50%) and with
+the boundary-symmetric objective (`terminal_value`, residual inventory valued
+at the solve's own mean forecast price); under the adjusted metric the two
+converge, confirming the correction is economically consistent.
+
+Validation (92 days) and test (98 days), **terminal-adjusted** EUR/day:
+
+| Controller | Val mean/median | Test mean/median |
+|---|---|---|
+| **Ensemble deployment** (promoted) | 54,388 / 56,877 | 45,480 / 46,802 |
+| Rule-based | 54,355 / 56,695 | 45,533 / 46,772 |
+| Information-equivalent MILP (`terminal_value`) | 55,649 / 58,230 | 47,955 / 49,402 |
+| Information-equivalent MILP (`constrained`) | 55,675 / 58,527 | 47,711 / 49,293 |
+
+Two things change and one does not:
+
+* **The MILP subsidy asymmetry is corrected — and the parity claim does not
+  survive.** The raw comparison flattered the RL and rule-based controllers,
+  which pocketed the ~1.2–1.3k EUR/day reset refill, against the
+  terminal-constrained MILP, which did not. Once every controller is priced
+  honestly, the promoted controller's gap to the information-equivalent MILP
+  is **−2.3% (val) and −5.2% (test)** on the mean, with the same sign on the
+  median — not the raw +0.6%/−1.7%. The earlier "median-level parity with the
+  optimization benchmark" was an artifact of the boundary subsidy.
+* **The RL-versus-rule-based result is unchanged — and slightly tightens.**
+  Both lose the same subsidy, so the promoted controller still tracks
+  rule-based: **+33 EUR/day (val), −53 EUR/day (test)** on the mean under the
+  adjusted metric (versus +27 / −83 raw). The near-parity-with-rule-based
+  finding is robust to the correction.
+* **The MILP end-of-day policies converge under the adjusted metric**
+  (`terminal_value` and `constrained` within ~0.3k EUR/day on both splits),
+  which is the internal check that the boundary valuation is sound: how the
+  optimizer treats residual inventory stops mattering once it is priced.
+
 ## Reading the result
 
-* **Median-level parity with the optimization benchmark**: median
-  information-equivalent gaps are +0.07% (pooled SAC seeds) and +0.58%
-  (promoted controller) on the reused test, and negative (better than the
-  MILP) on validation.
+* **A modest gap to the optimization benchmark, not parity**: under the
+  terminal-adjusted metric the promoted controller trails the
+  information-equivalent MILP by ≈2% on validation and ≈5% on the reused
+  test, on both mean and median. The raw-metric parity figures (+0.07%
+  pooled, +0.58% promoted) were inflated by the daily SoC-reset subsidy.
 * **No demonstrated mean-revenue advantage over rule-based control**: the
-  validation edge (+27 EUR/day, P 0.91) inverted to −83 EUR/day on the
-  spring test window. The bounded residual caps both tails; its measured
-  insurance premium is ≈0.2% of revenue.
+  validation edge (+27 EUR/day raw, +33 adjusted; P 0.91) inverted to −83
+  EUR/day raw (−53 adjusted) on the spring test window. The bounded residual
+  caps both tails; its measured insurance premium is ≈0.2% of revenue. This
+  finding is unchanged by the correction.
 * **Robustness, not expectation, is the contribution**: seed-selection
   risk is eliminated by construction, worst-case daily behavior is a
   design parameter, and the result is exactly reproducible from frozen

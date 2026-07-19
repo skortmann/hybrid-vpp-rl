@@ -224,16 +224,18 @@ docs/           MkDocs documentation
 Across two research phases (49 registered experiments; see
 `docs/results.md` and, preserved at tag `v0.2.0`,
 `reports/final_study_report.md`), the promoted
-ensemble deployment controller reaches **median-level parity with the
-information-equivalent MILP** (median info-gap +0.58% on the 98-day
-reused test split) and tracks the rule-based reference within
-**−83 ± 60 EUR/day of mean revenue** with a hard cap on daily losses
-(worst observed day: −847 EUR vs rule-based). It does **not** demonstrate
-a mean-revenue advantage over well-tuned rule-based control; its
-contribution is reliability — seed-selection risk is eliminated by
-construction and the paired confidence interval narrows 46-fold versus
-per-seed deployment. Details and boundaries: `docs/results.md`,
-`docs/limitations.md`.
+ensemble deployment controller **tracks the rule-based reference within
+≈0.2% of mean revenue** (−83 EUR/day raw, −53 adjusted on the reused test)
+with a hard cap on daily losses (worst observed day: −847 EUR vs
+rule-based). Against the information-equivalent MILP it trails by ≈2%
+(validation) to ≈5% (reused test) once end-of-day battery energy is priced
+honestly — the earlier "median-level parity" figure was inflated by an
+unpriced daily SoC-reset subsidy (see the terminal-adjusted re-pricing in
+`docs/results.md`). It does **not** demonstrate a mean-revenue advantage
+over well-tuned rule-based control; its contribution is reliability —
+seed-selection risk is eliminated by construction and the paired confidence
+interval narrows 46-fold versus per-seed deployment. Details and
+boundaries: `docs/results.md`, `docs/limitations.md`.
 
 ## Known limitations
 
