@@ -37,6 +37,11 @@ from hybrid_vpp.markets.positions import MARKETS
 EXPERIMENT_ID = "V6-hybrid-sac-strategic-seed0"
 MONDAY = "2025-11-24"  # first day of the plotted week (any weekday works)
 SPLIT = "val"
+#: chain the battery SoC across the week (physically faithful roll-over)
+#: instead of resetting to soc_initial at each local-midnight boundary.
+#: Off by default to match the published daily-reset evaluation regime;
+#: set True to visualize continuous end-of-day carry-over.
+CARRY_OVER = False
 REGISTRY = Path("experiments/registry.jsonl")
 #: set both to bypass the registry lookup
 MODEL_PATH: Path | None = None
@@ -71,22 +76,32 @@ def _resolve_checkpoint(experiment_id: str) -> tuple[Path, Path]:
     return found
 
 
-def _collect_week(model_path: Path, config_path: Path, monday: str, split: str):
-    """Quarter-hour production, per-market positions, and export for one week."""
+def _collect_week(model_path: Path, config_path: Path, monday: str, split: str, carry_over: bool):
+    """Quarter-hour production, per-market positions, and export for one week.
+
+    With ``carry_over`` the battery SoC is chained day to day (each episode
+    starts at the previous day's final SoC); otherwise it resets to
+    ``soc_initial`` at every episode as usual.
+    """
     from hybrid_vpp.envs.hybrid_vpp_env import HybridVppEnv
     from hybrid_vpp.training.algorithms import algo_class
 
     cfg = load_config(config_path)
+    cfg.episode.initial_soc_range = None  # deterministic figure
     model = algo_class(cfg.training.algorithm).load(model_path)
     env = HybridVppEnv(cfg, split=split)
-    rows, revenue = [], 0.0
+    rows, revenue, carried = [], 0.0, None
     for day in [str(d.date()) for d in pd.date_range(monday, periods=7)]:
-        obs, info = env.reset(options={"day": day})
+        options = {"day": day}
+        if carry_over and carried is not None:
+            options["initial_soc"] = carried
+        obs, info = env.reset(options=options)
         done = False
         while not done:
             action, _ = model.predict(obs, deterministic=True)
             obs, _, done, _, info = env.step(action)
         revenue += float(info["episode_metrics"]["total_net_revenue_eur"])
+        carried = float(info["episode_metrics"]["final_soc"])
         for t, rec in sorted(env.sim.dispatch_records.items()):
             row = {
                 "time_utc": t,
@@ -102,12 +117,13 @@ def _collect_week(model_path: Path, config_path: Path, monday: str, split: str):
     return pd.DataFrame(rows), revenue, cfg.site.battery
 
 
-def _implied_soc(position: pd.Series, production: pd.Series, bat) -> pd.Series:
+def _implied_soc(position: pd.Series, production: pd.Series, bat, carry_over: bool) -> pd.Series:
     """SoC implied by delivering ``position`` against realized production.
 
     Battery power = position − production, clipped to the ratings; energy is
-    integrated with charge/discharge efficiencies inside the SoC window and
-    reset to the initial SoC at each local-day boundary (1-day episodes).
+    integrated with charge/discharge efficiencies inside the SoC window.
+    Without ``carry_over`` it resets to the initial SoC at each local-day
+    boundary (1-day episodes); with ``carry_over`` it flows continuously.
     """
     cap = bat.energy_capacity_mwh
     e_min, e_max = bat.soc_min * cap, bat.soc_max * cap
@@ -115,7 +131,9 @@ def _implied_soc(position: pd.Series, production: pd.Series, bat) -> pd.Series:
     out = []
     for t in position.index:
         if t.date() != day:
-            day, e = t.date(), bat.soc_initial * cap
+            day = t.date()
+            if not carry_over:
+                e = bat.soc_initial * cap
         power = min(max(position[t] - production[t], -bat.charge_power_mw), bat.discharge_power_mw)
         if power >= 0:
             e -= min(power * 0.25 / bat.discharge_efficiency, e - e_min)
@@ -125,14 +143,16 @@ def _implied_soc(position: pd.Series, production: pd.Series, bat) -> pd.Series:
     return pd.Series(out, index=position.index)
 
 
-def _soc_composition(d: pd.DataFrame, bat) -> pd.DataFrame:
+def _soc_composition(d: pd.DataFrame, bat, carry_over: bool) -> pd.DataFrame:
     """Stored energy split by origin: initial fill, wind, PV, grid purchase.
 
     Charging energy is attributed to grid import where the interval imports
     (`grid_mw < 0`), otherwise to the delivered renewables (split by their
     wind/PV shares). Discharge drains all buckets proportionally (perfect
-    mixing). Buckets reset with the daily episode and are rescaled to the
-    realized SoC each interval, so the stack's top equals the realized SoC.
+    mixing) and every interval is rescaled to the realized SoC, so the
+    stack's top equals the realized SoC. Without ``carry_over`` the buckets
+    reset with each daily episode; with ``carry_over`` they flow across days
+    (the "initial fill" bucket then only seeds the first day).
     """
     cap = bat.energy_capacity_mwh
     buckets = {"initial": bat.soc_initial * cap, "wind": 0.0, "pv": 0.0, "grid": 0.0}
@@ -140,7 +160,8 @@ def _soc_composition(d: pd.DataFrame, bat) -> pd.DataFrame:
     for t, row in d.iterrows():
         if t.date() != day:
             day = t.date()
-            buckets = {"initial": bat.soc_initial * cap, "wind": 0.0, "pv": 0.0, "grid": 0.0}
+            if not carry_over:
+                buckets = {"initial": bat.soc_initial * cap, "wind": 0.0, "pv": 0.0, "grid": 0.0}
         power = row["bess_mw"]
         if power < 0:  # charging
             charged = -power * 0.25 * bat.charge_efficiency
@@ -193,11 +214,12 @@ def plot_market_stage_week(
     model_path: Path | None = MODEL_PATH,
     config_path: Path | None = CONFIG_PATH,
     fig_dir: Path = FIG_DIR,
+    carry_over: bool = CARRY_OVER,
 ) -> Path:
     """Render the weekly market-stage figure and return the written path."""
     if model_path is None or config_path is None:
         model_path, config_path = _resolve_checkpoint(experiment_id)
-    df, revenue, battery = _collect_week(model_path, config_path, monday, split)
+    df, revenue, battery = _collect_week(model_path, config_path, monday, split, carry_over)
     d = df.set_index("time_utc").sort_index()
     d.index = d.index.tz_convert(TZ)
     t0 = pd.Timestamp(monday, tz=TZ)
@@ -219,8 +241,10 @@ def plot_market_stage_week(
     ax.plot(d.index, d["wind_mw"], color=_C_WIND, linewidth=1.0)
     ax.plot(d.index, d["wind_mw"] + d["pv_mw"], color=_C_PV, linewidth=1.0)
     ax.set_ylabel("production MW", fontsize=8, color=_MUTED)
+    soc_mode = "SoC carried across days" if carry_over else "SoC resets daily"
     ax.set_title(
-        f"{experiment_id} — production and market-stage positions, week {monday} ({split})",
+        f"{experiment_id} — production and market-stage positions, "
+        f"week {monday} ({split}, {soc_mode})",
         fontsize=12,
         color=_INK,
         loc="left",
@@ -269,7 +293,7 @@ def plot_market_stage_week(
     cumulative = pd.Series(0.0, index=d.index)
     for market in MARKETS:
         cumulative = cumulative + d[market]
-        soc = _implied_soc(cumulative, production, battery)
+        soc = _implied_soc(cumulative, production, battery, carry_over)
         ax.plot(d.index, soc * 100, color=_C_MARKET[market], linewidth=1.1, alpha=0.9)
     ax.plot(d.index, d["soc"] * 100, color=_INK, linewidth=1.8)
     for bound in (battery.soc_min, battery.soc_max):
@@ -281,7 +305,7 @@ def plot_market_stage_week(
 
     ax = axes[4]  # stored energy by origin (stack top = realized SoC)
     _style(ax)
-    comp = _soc_composition(d, battery)
+    comp = _soc_composition(d, battery, carry_over)
     ax.stackplot(
         d.index,
         comp["initial"] * 100,
@@ -344,7 +368,8 @@ def plot_market_stage_week(
     fig.align_ylabels(axes)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig_dir.mkdir(parents=True, exist_ok=True)
-    out = fig_dir / f"market_stages_{experiment_id}_{monday}.png"
+    suffix = "_carryover" if carry_over else ""
+    out = fig_dir / f"market_stages_{experiment_id}_{monday}{suffix}.png"
     fig.savefig(out, dpi=150, facecolor=_SURFACE, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {out}")
